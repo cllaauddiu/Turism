@@ -1,0 +1,1 @@
+import{w as a,t as o,a as s}from"./chunk-EPOLDU6W-DFnzBwSv.js";import{u as n}from"./useAuth-DA8bHQmP.js";const c=a(function(){const{isAuthenticated:e}=n(),t=o();return s.useEffect(()=>{t(e?"/dashboard":"/auth")},[e,t]),null});export{c as default};

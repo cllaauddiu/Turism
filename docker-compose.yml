@@ -1,0 +1,177 @@
+version: "3.9"
+
+services:
+  # ── Traefik reverse proxy ────────────────────────────────────────────────────
+  traefik:
+    image: traefik:v3.2
+    container_name: traefik
+    command:
+      - "--api.insecure=true"                        # Dashboard la :8080
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "8080:8080"                                  # Traefik dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - licenta-net
+
+  # ── PostgreSQL ───────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_DB: User-Licenta
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./db-init:/docker-entrypoint-initdb.d
+    networks:
+      - licenta-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── User microservice (Spring Boot) ─────────────────────────────────────────
+  user-service:
+    build:
+      context: ./User
+      dockerfile: Dockerfile
+    container_name: user-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/User-Licenta
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 1234
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - licenta-net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.user-service.rule=Host(`localhost`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.user-service.entrypoints=web"
+      - "traefik.http.services.user-service.loadbalancer.server.port=8081"
+
+  # ── Weather microservice (Spring Boot) ──────────────────────────────────────
+  weather-service:
+    build:
+      context: ./Weather
+      dockerfile: Dockerfile
+    container_name: weather-service
+    environment:
+      VISUAL_CROSSING_API_KEY: ${VISUAL_CROSSING_API_KEY}
+    networks:
+      - licenta-net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.weather-service.rule=Host(`localhost`) && PathPrefix(`/weather`)"
+      - "traefik.http.routers.weather-service.entrypoints=web"
+      - "traefik.http.services.weather-service.loadbalancer.server.port=8082"
+
+  # ── AI microservice (Spring Boot + Gemini) ──────────────────────────────────
+  ai-service:
+    build:
+      context: ./AIService
+      dockerfile: Dockerfile
+    container_name: ai-service
+    environment:
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+    networks:
+      - licenta-net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ai-service.rule=Host(`localhost`) && PathPrefix(`/ai`)"
+      - "traefik.http.routers.ai-service.entrypoints=web"
+      - "traefik.http.services.ai-service.loadbalancer.server.port=8083"
+
+  # ── Games microservice (Spring Boot) ────────────────────────────────────────
+  games-service:
+    build:
+      context: ./Games
+      dockerfile: Dockerfile
+    container_name: games-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/gamedb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 1234
+      AI_SERVICE_URL: http://ai-service:8083
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ai-service:
+        condition: service_started
+    networks:
+      - licenta-net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.games-service.rule=Host(`localhost`) && PathPrefix(`/games`)"
+      - "traefik.http.routers.games-service.entrypoints=web"
+      - "traefik.http.services.games-service.loadbalancer.server.port=8084"
+
+  # ── Turism microservice (Spring Boot + Ticketmaster) ───────────────────────
+  turism-service:
+    build:
+      context: ./Turism
+      dockerfile: Dockerfile
+    container_name: turism-service
+    environment:
+      TICKETMASTER_API_KEY: ${TICKETMASTER_API_KEY}
+      SERPAPI_API_KEY: ${SERPAPI_API_KEY}
+    networks:
+      - licenta-net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.turism-service.rule=Host(`localhost`) && PathPrefix(`/api/turism`)"
+      - "traefik.http.routers.turism-service.entrypoints=web"
+      - "traefik.http.services.turism-service.loadbalancer.server.port=8085"
+
+  # ── ChatBox microservice (Spring Boot + AI bridge) ─────────────────────────
+  chatbox-service:
+    build:
+      context: ./ChatBox
+      dockerfile: Dockerfile
+    container_name: chatbox-service
+    environment:
+      AI_SERVICE_URL: http://ai-service:8083
+      TURISM_SERVICE_URL: http://turism-service:8085
+    depends_on:
+      ai-service:
+        condition: service_started
+    networks:
+      - licenta-net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.chatbox-service.rule=Host(`localhost`) && PathPrefix(`/chatbox`)"
+      - "traefik.http.routers.chatbox-service.entrypoints=web"
+      - "traefik.http.services.chatbox-service.loadbalancer.server.port=8086"
+
+  # ── Frontend (React + Nginx) ─────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    depends_on:
+      - user-service
+      - chatbox-service
+    networks:
+      - licenta-net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`localhost`)"
+      - "traefik.http.routers.frontend.entrypoints=web"
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
+
+networks:
+  licenta-net:
+    driver: bridge
+
+volumes:
+  postgres-data:
+
