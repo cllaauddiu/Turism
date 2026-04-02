@@ -541,14 +541,14 @@ export default function FogOfWar({ onClose }: FogOfWarProps) {
       <ConfettiCanvas active={confetti} />
 
       {/* ── Header ── */}
-      <div className="flex items-center justify-between px-4 py-3 bg-gray-950 border-b border-green-900/40 z-10">
-        <div className="flex items-center gap-3">
-          <span className="text-2xl">🌫️</span>
-          <div>
-            <h1 className="text-green-400 font-bold tracking-widest text-sm uppercase">
-              Fog of War — World Explorer
+      <div className="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3 bg-gray-950 border-b border-green-900/40 z-10">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <span className="text-xl sm:text-2xl shrink-0">🌫️</span>
+          <div className="min-w-0">
+            <h1 className="text-green-400 font-bold tracking-widest text-xs sm:text-sm uppercase truncate">
+              Fog of War
             </h1>
-            <p className="text-green-800 text-xs">Click a zone to reveal its secrets via AI riddles</p>
+            <p className="text-green-800 text-xs hidden sm:block">Click a zone to reveal its secrets via AI riddles</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -609,7 +609,7 @@ export default function FogOfWar({ onClose }: FogOfWarProps) {
         {/* Side panel */}
         {selectedZone && (
           <div
-            className="w-80 h-full border-l border-green-900/40 bg-gray-900/95 backdrop-blur p-4 overflow-y-auto"
+            className="absolute inset-0 sm:static sm:inset-auto w-full sm:w-80 h-full border-0 sm:border-l border-green-900/40 bg-gray-900/95 backdrop-blur p-4 overflow-y-auto z-30"
             style={{ animation: "slideIn 0.25s ease-out" }}
           >
             <SidePanel

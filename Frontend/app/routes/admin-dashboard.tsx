@@ -207,7 +207,7 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gray-950 text-white">
 
       {/* ── Navbar ── */}
-      <nav className="sticky top-0 z-30 bg-gray-950/90 backdrop-blur border-b border-gray-800 px-6 py-3 flex items-center justify-between">
+      <nav className="sticky top-0 z-30 bg-gray-950/90 backdrop-blur border-b border-gray-800 px-3 sm:px-6 py-2 sm:py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-violet-600/20 border border-violet-700/50 flex items-center justify-center text-sm">⚡</div>
           <div>
@@ -216,17 +216,21 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <div className="text-right hidden sm:block">
             <p className="text-sm font-semibold text-white">{user.username}</p>
             <p className="text-xs text-gray-500">{user.email}</p>
           </div>
-          <span className="text-xs px-2 py-1 rounded-full bg-violet-900/50 border border-violet-700/50 text-violet-300 font-semibold">
+          {/* Mobile avatar */}
+          <div className="sm:hidden w-8 h-8 rounded-full bg-violet-900/40 border border-violet-700/50 flex items-center justify-center text-xs font-bold text-violet-300">
+            {user.username.charAt(0).toUpperCase()}
+          </div>
+          <span className="hidden sm:inline-block text-xs px-2 py-1 rounded-full bg-violet-900/50 border border-violet-700/50 text-violet-300 font-semibold">
             ADMIN
           </span>
           <button
             onClick={() => { logout(); navigate("/auth"); }}
-            className="text-xs px-3 py-1.5 rounded border border-red-900/60 text-red-400 hover:bg-red-900/30 hover:border-red-600 transition-all"
+            className="text-xs px-2 sm:px-3 py-1.5 rounded border border-red-900/60 text-red-400 hover:bg-red-900/30 hover:border-red-600 transition-all"
           >
             Deconectare
           </button>
@@ -234,7 +238,7 @@ export default function AdminDashboard() {
       </nav>
 
       {/* ── Page body ── */}
-      <main className="max-w-6xl mx-auto px-6 py-8 space-y-6">
+      <main className="max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-8 space-y-4 sm:space-y-6">
 
         {/* Tabs */}
         <div className="flex gap-1 bg-gray-900/60 border border-gray-800 rounded-xl p-1 w-fit">
@@ -367,7 +371,8 @@ export default function AdminDashboard() {
                   <p className="text-sm">Niciun utilizator găsit.</p>
                 </div>
               ) : (
-                <table className="w-full text-sm">
+                <div className="overflow-x-auto">
+                <table className="w-full text-sm min-w-[500px]">
                   <thead>
                     <tr className="border-b border-gray-800 bg-gray-950/50">
                       <th className="text-left text-xs text-gray-600 uppercase tracking-widest px-5 py-3 font-medium">#</th>
@@ -426,6 +431,7 @@ export default function AdminDashboard() {
                     ))}
                   </tbody>
                 </table>
+                </div>
               )}
             </div>
           </div>
@@ -434,7 +440,7 @@ export default function AdminDashboard() {
 
       {/* ── Toast notification ── */}
       {toast && (
-        <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3 rounded-xl border shadow-2xl text-sm font-medium transition-all ${
+        <div className={`fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:bottom-6 z-50 flex items-center gap-3 px-4 sm:px-5 py-3 rounded-xl border shadow-2xl text-sm font-medium transition-all ${
           toast.type === "ok"
             ? "bg-emerald-950 border-emerald-700/60 text-emerald-300"
             : "bg-red-950 border-red-700/60 text-red-300"

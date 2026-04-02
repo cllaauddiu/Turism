@@ -45,11 +45,11 @@ export default function UserProfile({ onClose }: UserProfileProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4"
       style={{ backgroundColor: "rgba(0,0,0,0.75)", backdropFilter: "blur(4px)" }}
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="relative w-full max-w-md bg-gray-950 border border-green-900/60 rounded-2xl shadow-2xl shadow-green-950/50 overflow-hidden flex flex-col max-h-[88vh]">
+      <div className="relative w-full h-full sm:h-auto sm:max-w-md bg-gray-950 border-0 sm:border border-green-900/60 rounded-none sm:rounded-2xl shadow-2xl shadow-green-950/50 overflow-hidden flex flex-col sm:max-h-[88vh]">
         {/* Top accent bar */}
         <div className="h-1 w-full bg-linear-to-r from-green-700 via-emerald-500 to-teal-600 shrink-0" />
 

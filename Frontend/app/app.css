@@ -1,2 +1,21 @@
 @import "tailwindcss";
 
+/* Mobile touch improvements */
+@media (max-width: 640px) {
+  /* Prevent pull-to-refresh on modals */
+  .modal-open {
+    overscroll-behavior: contain;
+  }
+
+  /* Better tap targets */
+  button, a, [role="button"] {
+    min-height: 36px;
+  }
+}
+
+/* Safe area for phones with notch */
+@supports (padding: env(safe-area-inset-top)) {
+  .safe-top { padding-top: env(safe-area-inset-top); }
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+}
+

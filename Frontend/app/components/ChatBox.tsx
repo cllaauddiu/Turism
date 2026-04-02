@@ -81,11 +81,11 @@ export default function ChatBox({ onClose }: ChatBoxProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4"
       style={{ background: "rgba(0,0,0,0.85)" }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="relative w-full max-w-4xl h-[82vh] bg-gray-950 rounded-2xl border border-cyan-900/50 overflow-hidden shadow-2xl shadow-cyan-950/40 flex flex-col">
+      <div className="relative w-full h-full sm:max-w-4xl sm:h-[82vh] bg-gray-950 rounded-none sm:rounded-2xl border-0 sm:border border-cyan-900/50 overflow-hidden shadow-2xl shadow-cyan-950/40 flex flex-col">
         <div className="flex items-center justify-between px-5 py-3 border-b border-cyan-900/40 bg-gray-950/90">
           <div className="flex items-center gap-3">
             <span className="text-cyan-400 text-lg">AI</span>
@@ -140,12 +140,12 @@ export default function ChatBox({ onClose }: ChatBoxProps) {
                 }
               }}
               placeholder="Scrie mesajul tau..."
-              className="flex-1 resize-none h-20 rounded-lg bg-gray-900 border border-cyan-900/40 text-gray-100 font-mono text-sm px-3 py-2 outline-none focus:border-cyan-500"
+              className="flex-1 resize-none h-12 sm:h-20 rounded-lg bg-gray-900 border border-cyan-900/40 text-gray-100 font-mono text-sm px-3 py-2 outline-none focus:border-cyan-500"
             />
             <button
               onClick={() => { void sendMessage(); }}
               disabled={sending || !input.trim()}
-              className="h-20 px-4 rounded-lg border border-cyan-600/50 text-cyan-300 hover:bg-cyan-900/20 disabled:opacity-40 disabled:cursor-not-allowed font-mono text-sm"
+              className="h-12 sm:h-20 px-3 sm:px-4 rounded-lg border border-cyan-600/50 text-cyan-300 hover:bg-cyan-900/20 disabled:opacity-40 disabled:cursor-not-allowed font-mono text-sm"
             >
               Trimite
             </button>

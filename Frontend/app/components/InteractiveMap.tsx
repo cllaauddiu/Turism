@@ -466,22 +466,22 @@ export default function InteractiveMap({ onClose, flyTo }: InteractiveMapProps) 
 
       {/* Modal backdrop */}
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4"
         style={{ background: "rgba(0,0,0,0.85)" }}
         onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       >
         {/* Modal container */}
-        <div className="relative w-full max-w-6xl h-[85vh] bg-gray-950 rounded-2xl border border-green-900/50 overflow-hidden shadow-2xl shadow-green-950/50 flex flex-col">
+        <div className="relative w-full h-full sm:max-w-6xl sm:h-[85vh] bg-gray-950 rounded-none sm:rounded-2xl border-0 sm:border border-green-900/50 overflow-hidden shadow-2xl shadow-green-950/50 flex flex-col">
 
           {/* Modal header */}
-          <div className="flex items-center justify-between px-5 py-3 border-b border-green-900/40 bg-gray-950/90 backdrop-blur z-10 shrink-0">
-            <div className="flex items-center gap-3">
-              <span className="text-green-400 text-lg">🗺️</span>
-              <div>
-                <h2 className="text-green-300 font-mono font-bold text-sm tracking-widest uppercase">
+          <div className="flex items-center justify-between px-3 sm:px-5 py-2 sm:py-3 border-b border-green-900/40 bg-gray-950/90 backdrop-blur z-10 shrink-0">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <span className="text-green-400 text-base sm:text-lg shrink-0">🗺️</span>
+              <div className="min-w-0">
+                <h2 className="text-green-300 font-mono font-bold text-xs sm:text-sm tracking-widest uppercase truncate">
                   Hartă Interactivă
                 </h2>
-                <p className="text-green-800 font-mono text-xs">
+                <p className="text-green-800 font-mono text-xs hidden sm:block">
                   Proiecție Mercator · WGS84 · Leaflet OSM
                 </p>
               </div>

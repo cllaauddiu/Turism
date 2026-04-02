@@ -182,11 +182,11 @@ export default function HolidayPlanner({ onClose }: HolidayPlannerProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4"
       style={{ background: "rgba(0,0,0,0.85)" }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="relative w-full max-w-6xl h-[86vh] bg-gray-950 rounded-2xl border border-indigo-900/50 overflow-hidden shadow-2xl shadow-indigo-950/40 flex flex-col">
+      <div className="relative w-full h-full sm:max-w-6xl sm:h-[86vh] bg-gray-950 rounded-none sm:rounded-2xl border-0 sm:border border-indigo-900/50 overflow-hidden shadow-2xl shadow-indigo-950/40 flex flex-col">
         <div className="flex items-center justify-between px-5 py-3 border-b border-indigo-900/40 bg-gray-950/90">
           <div>
             <h2 className="text-indigo-300 font-mono font-bold text-sm tracking-widest uppercase">Holiday AI Planner</h2>

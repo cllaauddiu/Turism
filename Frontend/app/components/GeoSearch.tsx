@@ -359,11 +359,11 @@ export default function GeoSearch({ onClose, onViewOnMap }: GeoSearchProps) {
   // ── Render ─────────────────────────────────────────────────────────────
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4"
       style={{ background: "rgba(0,0,0,0.85)" }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="relative w-full max-w-2xl max-h-[90vh] bg-gray-950 border border-green-900/50 rounded-2xl shadow-2xl shadow-green-950/50 flex flex-col overflow-hidden">
+      <div className="relative w-full h-full sm:h-auto sm:max-w-2xl sm:max-h-[90vh] bg-gray-950 border-0 sm:border border-green-900/50 rounded-none sm:rounded-2xl shadow-2xl shadow-green-950/50 flex flex-col overflow-hidden">
 
         {/* ── Header ── */}
         <div className="shrink-0 flex items-center justify-between px-6 py-4 border-b border-green-900/30 bg-gray-950/90">
@@ -386,14 +386,14 @@ export default function GeoSearch({ onClose, onViewOnMap }: GeoSearchProps) {
         </div>
 
         {/* ── Mode tabs ── */}
-        <div className="shrink-0 flex gap-2 px-6 pt-4 pb-3 border-b border-green-900/20">
+        <div className="shrink-0 flex gap-1 sm:gap-2 px-3 sm:px-6 pt-3 sm:pt-4 pb-2 sm:pb-3 border-b border-green-900/20">
           <ModeTab mode="name"   active={mode} onClick={() => setMode("name")}   icon="🔤" label="Nume" />
           <ModeTab mode="coords" active={mode} onClick={() => setMode("coords")} icon="📡" label="Coordonate GPS" />
           <ModeTab mode="image"  active={mode} onClick={() => setMode("image")}  icon="📷" label="Imagine" />
         </div>
 
         {/* ── Body ── */}
-        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+        <div className="flex-1 overflow-y-auto px-3 sm:px-6 py-4 sm:py-5 space-y-4">
 
           {/* ══ NAME MODE ══ */}
           {mode === "name" && (

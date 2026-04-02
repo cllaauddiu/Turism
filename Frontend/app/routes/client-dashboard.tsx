@@ -223,14 +223,16 @@ export default function ClientDashboard() {
         <div className="absolute inset-0 bg-[repeating-linear-gradient(0deg,transparent,transparent_2px,rgba(0,255,100,0.015)_2px,rgba(0,255,100,0.015)_4px)]" />
       </div>
 
-      {/* ── Floating coordinate labels ── */}
-      <CoordLabel top="8%" left="12%" text="45°32'N  12°18'E" />
-      <CoordLabel top="15%" left="70%" text="51°30'N  00°07'W" />
-      <CoordLabel top="35%" left="5%" text="40°41'N  74°00'W" />
-      <CoordLabel top="55%" left="80%" text="35°41'N  139°41'E" />
-      <CoordLabel top="70%" left="25%" text="23°32'S  46°38'W" />
-      <CoordLabel top="20%" left="48%" text="48°51'N  02°21'E" />
-      <CoordLabel top="80%" left="60%" text="33°51'S  151°12'E" />
+      {/* ── Floating coordinate labels (hidden on mobile) ── */}
+      <div className="hidden sm:block">
+        <CoordLabel top="8%" left="12%" text="45°32'N  12°18'E" />
+        <CoordLabel top="15%" left="70%" text="51°30'N  00°07'W" />
+        <CoordLabel top="35%" left="5%" text="40°41'N  74°00'W" />
+        <CoordLabel top="55%" left="80%" text="35°41'N  139°41'E" />
+        <CoordLabel top="70%" left="25%" text="23°32'S  46°38'W" />
+        <CoordLabel top="20%" left="48%" text="48°51'N  02°21'E" />
+        <CoordLabel top="80%" left="60%" text="33°51'S  151°12'E" />
+      </div>
 
       {/* ── Navbar ── */}
       <nav className="relative z-20 border-b border-green-900/40 bg-gray-950/80 backdrop-blur-md px-6 py-3 flex items-center justify-between">
@@ -256,7 +258,17 @@ export default function ClientDashboard() {
         </div>
 
         {/* User info + logout */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
+          {/* Mobile: avatar button only */}
+          <button
+            onClick={() => setShowProfile(true)}
+            className="sm:hidden w-9 h-9 rounded-full bg-green-900/40 border-2 border-green-600/60 flex items-center justify-center active:scale-95 transition-transform"
+          >
+            <span className="text-sm font-bold text-green-300 font-mono uppercase">
+              {user.username.charAt(0)}
+            </span>
+          </button>
+          {/* Desktop: full username */}
           <button
             onClick={() => setShowProfile(true)}
             className="text-right hidden sm:block group cursor-pointer"
@@ -266,12 +278,12 @@ export default function ClientDashboard() {
             </p>
             <p className="text-xs text-green-700 font-mono">ver perfil</p>
           </button>
-          <span className="text-xs px-2 py-1 rounded border border-green-800 text-green-500 font-mono uppercase tracking-wider">
+          <span className="hidden sm:inline-block text-xs px-2 py-1 rounded border border-green-800 text-green-500 font-mono uppercase tracking-wider">
             {user.role}
           </span>
           <button
             onClick={handleLogout}
-            className="text-xs px-3 py-1.5 rounded border border-red-900/60 text-red-400 hover:bg-red-900/30 hover:border-red-600 transition-all font-mono uppercase tracking-wider"
+            className="text-xs px-2 sm:px-3 py-1.5 rounded border border-red-900/60 text-red-400 hover:bg-red-900/30 hover:border-red-600 transition-all font-mono uppercase tracking-wider"
           >
             Disconnect
           </button>
@@ -279,7 +291,7 @@ export default function ClientDashboard() {
       </nav>
 
       {/* ── Hero section ── */}
-      <section className="relative z-10 pt-16 pb-10 px-6 text-center">
+      <section className="relative z-10 pt-8 sm:pt-16 pb-6 sm:pb-10 px-4 sm:px-6 text-center">
         {/* Decorative ring */}
         <div className="absolute left-1/2 top-8 -translate-x-1/2 w-96 h-96 rounded-full border border-green-900/20 pointer-events-none" />
         <div className="absolute left-1/2 top-8 -translate-x-1/2 w-64 h-64 rounded-full border border-green-900/30 pointer-events-none" />
@@ -288,7 +300,7 @@ export default function ClientDashboard() {
           <p className="text-green-500 font-mono text-xs tracking-[0.3em] uppercase mb-4">
             ◈ Atlas Geografic Digital ◈
           </p>
-          <h2 className="text-5xl md:text-6xl font-bold leading-tight mb-4">
+          <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold leading-tight mb-4">
             <span className="text-transparent bg-clip-text bg-linear-to-r from-green-400 via-emerald-300 to-teal-400">
               Explorează
             </span>
@@ -302,7 +314,7 @@ export default function ClientDashboard() {
           </p>
 
           {/* CTA buttons */}
-          <div className="flex flex-wrap gap-3 justify-center mt-8">
+          <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-3 justify-center mt-6 sm:mt-8 px-2 sm:px-0">
             <button onClick={() => setShowMap(true)} className="flex items-center gap-2 bg-green-500/10 hover:bg-green-500/20 border border-green-500/40 hover:border-green-400 text-green-300 px-6 py-2.5 rounded-lg font-mono text-sm transition-all duration-300 hover:shadow-lg hover:shadow-green-900/40">
               <span>🗺️</span> Hartă Interactivă
             </button>
@@ -333,8 +345,8 @@ export default function ClientDashboard() {
       </section>
 
       {/* ── Stats bar ── */}
-      <section className="relative z-10 px-6 pb-10">
-        <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-3">
+      <section className="relative z-10 px-4 sm:px-6 pb-6 sm:pb-10">
+        <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
           <StatPill label="Țări" value="195" unit="state suverane" />
           <StatPill label="Suprafață" value="510M" unit="km² total" />
           <StatPill label="Continente" value="7" unit="mase de uscat" />
@@ -343,7 +355,7 @@ export default function ClientDashboard() {
       </section>
 
       {/* ── Region cards ── */}
-      <section className="relative z-10 px-6 pb-12">
+      <section className="relative z-10 px-4 sm:px-6 pb-8 sm:pb-12">
         <div className="max-w-5xl mx-auto">
           <div className="flex items-center gap-3 mb-6">
             <div className="h-px flex-1 bg-green-900/40" />
@@ -367,7 +379,7 @@ export default function ClientDashboard() {
       </section>
 
       {/* ── Info panels ── */}
-      <section className="relative z-10 px-6 pb-16">
+      <section className="relative z-10 px-4 sm:px-6 pb-10 sm:pb-16">
         <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-5">
 
           {/* Panel 1 – Locație */}
