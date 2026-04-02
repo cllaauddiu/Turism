@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { chatApi, type HolidayRecommendationRequest, type HolidayRecommendationResponse } from "~/lib/api";
+import { chatApi, type HolidayRecommendationOption, type HolidayRecommendationRequest, type HolidayRecommendationResponse } from "~/lib/api";
+import { useAuth } from "~/hooks/useAuth";
+import { useFavorites } from "~/hooks/useFavorites";
 
 interface HolidayPlannerProps {
   onClose: () => void;
@@ -100,6 +102,9 @@ function SelectField<T extends string>({
 }
 
 export default function HolidayPlanner({ onClose }: HolidayPlannerProps) {
+  const { user } = useAuth();
+  const { addFavorite, removeFavoriteByCity, isFavorite } = useFavorites(user?.username ?? "");
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -165,6 +170,16 @@ export default function HolidayPlanner({ onClose }: HolidayPlannerProps) {
     }
   };
 
+  const handleToggleFavorite = (rec: HolidayRecommendationOption) => {
+    if (isFavorite(rec)) {
+      removeFavoriteByCity(rec.destinationCity);
+    } else {
+      addFavorite(rec);
+      setToastMsg(`${rec.destinationCity} adăugat la favorite!`);
+      setTimeout(() => setToastMsg(null), 2500);
+    }
+  };
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -179,6 +194,13 @@ export default function HolidayPlanner({ onClose }: HolidayPlannerProps) {
           </div>
           <button onClick={onClose} className="text-gray-500 hover:text-red-400 text-xl leading-none font-mono">X</button>
         </div>
+
+        {/* Toast notification */}
+        {toastMsg && (
+          <div className="absolute top-16 left-1/2 -translate-x-1/2 z-10 bg-indigo-900/90 border border-indigo-500/60 text-indigo-100 text-xs font-mono px-4 py-2 rounded-lg shadow-lg">
+            ★ {toastMsg}
+          </div>
+        )}
 
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
           <div className="text-indigo-200 font-mono text-sm">{stepTitle}</div>
@@ -255,8 +277,19 @@ export default function HolidayPlanner({ onClose }: HolidayPlannerProps) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {result.recommendations.map((rec, idx) => (
                   <div key={`${rec.destinationCity}-${idx}`} className="rounded-xl border border-indigo-900/50 bg-gray-900/70 p-4 space-y-2">
-                    <div className="text-indigo-100 font-semibold text-base">
-                      {rec.title || `${rec.destinationCity}, ${rec.destinationCountry}`}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="text-indigo-100 font-semibold text-base">
+                        {rec.title || `${rec.destinationCity}, ${rec.destinationCountry}`}
+                      </div>
+                      <button
+                        onClick={() => handleToggleFavorite(rec)}
+                        title={isFavorite(rec) ? "Elimină din favorite" : "Adaugă la favorite"}
+                        className={`shrink-0 text-lg transition-all duration-200 hover:scale-125 ${
+                          isFavorite(rec) ? "text-yellow-400" : "text-gray-600 hover:text-yellow-400"
+                        }`}
+                      >
+                        {isFavorite(rec) ? "★" : "☆"}
+                      </button>
                     </div>
                     <div className="text-indigo-300 text-sm">
                       {rec.destinationCity}, {rec.destinationCountry}

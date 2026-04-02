@@ -7,6 +7,7 @@ const GeoSearch = lazy(() => import("~/components/GeoSearch"));
 const FogOfWar = lazy(() => import("~/components/FogOfWar"));
 const ChatBox = lazy(() => import("~/components/ChatBox"));
 const HolidayPlanner = lazy(() => import("~/components/HolidayPlanner"));
+const UserProfile = lazy(() => import("~/components/UserProfile"));
 
 // ── SVG World Map (simplified continents as decorative paths) ──────────────
 function WorldMapSVG() {
@@ -183,6 +184,7 @@ export default function ClientDashboard() {
   const [showFog, setShowFog] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [showHolidayPlanner, setShowHolidayPlanner] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const [mapFlyTo, setMapFlyTo] = useState<{ lat: number; lon: number; name: string } | null>(null);
 
   useEffect(() => {
@@ -255,10 +257,15 @@ export default function ClientDashboard() {
 
         {/* User info + logout */}
         <div className="flex items-center gap-4">
-          <div className="text-right hidden sm:block">
-            <p className="text-sm font-semibold text-green-300 font-mono">{user.username}</p>
-            <p className="text-xs text-green-700 font-mono">{user.email}</p>
-          </div>
+          <button
+            onClick={() => setShowProfile(true)}
+            className="text-right hidden sm:block group cursor-pointer"
+          >
+            <p className="text-sm font-semibold text-green-300 font-mono group-hover:text-green-400 transition-colors underline-offset-2 group-hover:underline">
+              {user.username}
+            </p>
+            <p className="text-xs text-green-700 font-mono">ver perfil</p>
+          </button>
           <span className="text-xs px-2 py-1 rounded border border-green-800 text-green-500 font-mono uppercase tracking-wider">
             {user.role}
           </span>
@@ -507,6 +514,17 @@ export default function ClientDashboard() {
           </div>
         }>
           <HolidayPlanner onClose={() => setShowHolidayPlanner(false)} />
+        </Suspense>
+      )}
+
+      {/* ── User Profile Modal ── */}
+      {showProfile && (
+        <Suspense fallback={
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+            <div className="text-green-400 font-mono text-sm animate-pulse">Se încarcă profilul...</div>
+          </div>
+        }>
+          <UserProfile onClose={() => setShowProfile(false)} />
         </Suspense>
       )}
 
