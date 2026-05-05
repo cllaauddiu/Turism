@@ -1,23 +1,34 @@
 package com.licenta.chatbox.support.model;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CopyOnWriteArrayList;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
+@Entity
+@Table(name = "support_sessions")
 public class SupportSession {
 
-    private final String id;
-    private final String clientUsername;
-    private final List<SupportMessage> messages;
-    private final Instant createdAt;
-    private volatile Instant lastMessageAt;
-    private volatile String status;
+    @Id
+    private String id;
+    private String clientUsername;
+    private Instant createdAt;
+    private Instant lastMessageAt;
+    private String status;
+
+    @Transient
+    private List<SupportMessage> messages = new ArrayList<>();
+
+    protected SupportSession() {
+    }
 
     public SupportSession(String clientUsername) {
         this.id = UUID.randomUUID().toString();
         this.clientUsername = clientUsername;
-        this.messages = new CopyOnWriteArrayList<>();
         this.createdAt = Instant.now();
         this.lastMessageAt = this.createdAt;
         this.status = "OPEN";
@@ -32,7 +43,7 @@ public class SupportSession {
 
     public void addMessage(SupportMessage message) {
         messages.add(message);
-        lastMessageAt = message.createdAt();
+        lastMessageAt = message.getCreatedAt();
     }
 
     public void close() {

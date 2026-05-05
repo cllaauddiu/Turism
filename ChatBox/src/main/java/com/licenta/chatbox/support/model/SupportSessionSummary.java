@@ -13,7 +13,7 @@ public record SupportSessionSummary(
 ) {
     public static SupportSessionSummary from(SupportSession session) {
         var msgs = session.getMessages();
-        String preview = msgs.isEmpty() ? "" : msgs.get(msgs.size() - 1).content();
+        String preview = msgs.isEmpty() ? "" : msgs.get(msgs.size() - 1).getContent();
         if (preview.length() > 80) preview = preview.substring(0, 80) + "...";
         return new SupportSessionSummary(
                 session.getId(),

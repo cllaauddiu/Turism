@@ -36,9 +36,9 @@ services:
       timeout: 5s
       retries: 5
 
-  # ── PostgreSQL ───────────────────────────────────────────────────────────────
+  # ── PostgreSQL + PostGIS (date geospatiale pentru places) ──────────────────
   postgres:
-    image: postgres:16-alpine
+    image: postgis/postgis:16-3.5
     container_name: postgres
     environment:
       POSTGRES_DB: User-Licenta
@@ -53,6 +53,27 @@ services:
       - licenta-net
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── TimescaleDB (date istorice de vreme) ────────────────────────────────────
+  timescaledb:
+    image: timescale/timescaledb:latest-pg16
+    container_name: timescaledb
+    environment:
+      POSTGRES_DB: weatherdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+    ports:
+      - "5434:5432"
+    volumes:
+      - timescaledb-data:/var/lib/postgresql/data
+      - ./db-init-weather:/docker-entrypoint-initdb.d
+    networks:
+      - licenta-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d weatherdb"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -78,14 +99,20 @@ services:
       - "traefik.http.routers.user-service.entrypoints=web"
       - "traefik.http.services.user-service.loadbalancer.server.port=8081"
 
-  # ── Weather microservice (Spring Boot) ──────────────────────────────────────
+  # ── Weather microservice (Spring Boot + Open-Meteo + TimescaleDB) ──────────
   weather-service:
     build:
       context: ./Weather
       dockerfile: Dockerfile
     container_name: weather-service
     environment:
-      VISUAL_CROSSING_API_KEY: ${VISUAL_CROSSING_API_KEY}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://timescaledb:5432/weatherdb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 1234
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    restart: always
     networks:
       - licenta-net
     labels:
@@ -144,7 +171,7 @@ services:
       - "traefik.http.routers.games-service.entrypoints=web"
       - "traefik.http.services.games-service.loadbalancer.server.port=8084"
 
-  # ── Turism microservice (Spring Boot + Ticketmaster) ───────────────────────
+  # ── Turism microservice (Ticketmaster events + Overpass/PostGIS places) ────
   turism-service:
     build:
       context: ./Turism
@@ -152,12 +179,16 @@ services:
     container_name: turism-service
     environment:
       TICKETMASTER_API_KEY: ${TICKETMASTER_API_KEY}
-      SERPAPI_API_KEY: ${SERPAPI_API_KEY}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/placesdb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 1234
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_RABBITMQ_PORT: 5672
       SPRING_RABBITMQ_USERNAME: guest
       SPRING_RABBITMQ_PASSWORD: guest
     depends_on:
+      postgres:
+        condition: service_healthy
       rabbitmq:
         condition: service_healthy
     networks:
@@ -175,6 +206,9 @@ services:
       dockerfile: Dockerfile
     container_name: chatbox-service
     environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/chatboxdb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 1234
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_RABBITMQ_PORT: 5672
       SPRING_RABBITMQ_USERNAME: guest
@@ -214,4 +248,4 @@ networks:
 
 volumes:
   postgres-data:
-
+  timescaledb-data:

@@ -20,7 +20,7 @@
         </processorPath>
         <module name="User" />
       </profile>
-      <profile name="Annotation profile for Games" enabled="true">
+      <profile name="Annotation profile for Weather" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />

@@ -158,9 +158,42 @@ const weatherAxios = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
+export interface TrackedCity {
+  name: string;
+  country: string;
+  latitude: number;
+  longitude: number;
+}
+
+export interface WeatherHistoryEntry {
+  recordedAt: string;
+  city: string;
+  country: string;
+  temperature: number;
+  feelsLike: number;
+  humidity: number;
+  windSpeed: number;
+  uvIndex: number;
+  cloudCover: number;
+  precipProbability: number;
+  pressure: number;
+  conditions: string;
+  icon: string;
+  tempMax: number;
+  tempMin: number;
+}
+
 export const weatherApi = {
   getWeather: (lat: number, lon: number) =>
     weatherAxios.get<WeatherData>("", { params: { lat, lon } }).then((r) => r.data),
+  getCities: () =>
+    weatherAxios.get<TrackedCity[]>("/cities").then((r) => r.data),
+  getHistory: (cities: string[], days: number) =>
+    weatherAxios
+      .get<WeatherHistoryEntry[]>("/history", {
+        params: { cities: cities.join(","), days },
+      })
+      .then((r) => r.data),
 };
 
 // ── Turism ───────────────────────────────────────────────────────────────────

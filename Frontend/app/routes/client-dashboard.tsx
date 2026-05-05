@@ -8,6 +8,7 @@ const FogOfWar = lazy(() => import("~/components/FogOfWar"));
 const ChatBox = lazy(() => import("~/components/ChatBox"));
 const HolidayPlanner = lazy(() => import("~/components/HolidayPlanner"));
 const UserProfile = lazy(() => import("~/components/UserProfile"));
+const WeatherHistory = lazy(() => import("~/components/WeatherHistory"));
 
 // ── SVG World Map (simplified continents as decorative paths) ──────────────
 function WorldMapSVG() {
@@ -185,6 +186,7 @@ export default function ClientDashboard() {
   const [showChat, setShowChat] = useState(false);
   const [showHolidayPlanner, setShowHolidayPlanner] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [showWeatherHistory, setShowWeatherHistory] = useState(false);
   const [mapFlyTo, setMapFlyTo] = useState<{ lat: number; lon: number; name: string } | null>(null);
   const [chatInitialTab, setChatInitialTab] = useState<"ai" | "admin">("ai");
 
@@ -353,6 +355,15 @@ export default function ClientDashboard() {
               className="w-full flex items-center justify-center gap-2 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/40 hover:border-indigo-400 text-indigo-200 px-6 py-3 rounded-lg font-mono text-sm transition-all duration-300 hover:shadow-lg hover:shadow-indigo-900/40"
             >
               Planner Vacanță
+            </button>
+          </div>
+
+          <div className="mt-3 max-w-3xl mx-auto">
+            <button
+              onClick={() => setShowWeatherHistory(true)}
+              className="w-full flex items-center justify-center gap-2 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/40 hover:border-emerald-400 text-emerald-200 px-6 py-3 rounded-lg font-mono text-sm transition-all duration-300 hover:shadow-lg hover:shadow-emerald-900/40"
+            >
+              Istoric Vreme · Comparator 20 Orașe
             </button>
           </div>
         </div>
@@ -551,6 +562,17 @@ export default function ClientDashboard() {
           </div>
         }>
           <UserProfile onClose={() => setShowProfile(false)} />
+        </Suspense>
+      )}
+
+      {/* ── Weather History Modal ── */}
+      {showWeatherHistory && (
+        <Suspense fallback={
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+            <div className="text-emerald-300 font-mono text-sm animate-pulse">Se incarca istoricul...</div>
+          </div>
+        }>
+          <WeatherHistory onClose={() => setShowWeatherHistory(false)} />
         </Suspense>
       )}
 
