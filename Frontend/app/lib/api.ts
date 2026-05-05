@@ -85,11 +85,13 @@ export const authApi = {
     api.post<AuthResponse>("/auth/login", data).then((r) => r.data),
   register: (data: RegisterRequest) =>
     api.post<AuthResponse>("/auth/register", data).then((r) => r.data),
+  loginAsGuest: () =>
+    api.post<AuthResponse>("/auth/guest").then((r) => r.data),
 };
 
 // ── Users (Admin) ─────────────────────────────────────────────────────────────
 
-export type UserRole = "ADMIN" | "CLIENT";
+export type UserRole = "ADMIN" | "CLIENT" | "GUEST";
 
 export interface UserDTO {
   id: number;

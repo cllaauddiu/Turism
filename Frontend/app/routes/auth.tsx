@@ -258,6 +258,27 @@ export default function AuthPage() {
                 </p>
               </form>
             )}
+
+            <button
+              onClick={async () => {
+                setLoading(true);
+                setServerError("");
+                try {
+                  const data = await authApi.loginAsGuest();
+                  login(data);
+                  navigate("/dashboard");
+                } catch (e: any) {
+                  setServerError("Eroare la conectarea ca vizitator.");
+                } finally {
+                  setLoading(false);
+                }
+              }}
+              disabled={loading}
+              type="button"
+              className="w-full mt-4 bg-transparent hover:bg-green-500/10 border border-green-900/50 hover:border-green-500/40 disabled:opacity-50 text-green-600 hover:text-green-400 font-mono font-semibold text-xs py-2 rounded-lg transition-all duration-300 uppercase tracking-widest"
+            >
+              ⯈ Continuă ca vizitator
+            </button>
           </div>
         </div>
 

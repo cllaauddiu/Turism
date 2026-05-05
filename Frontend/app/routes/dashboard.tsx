@@ -14,9 +14,8 @@ export default function Dashboard() {
 
   if (!user) return null;
 
-  if (user.role === "CLIENT") return <ClientDashboard />;
+  if (user.role === "CLIENT" || user.role === "GUEST") return <ClientDashboard />;
   if (user.role === "ADMIN")  return <AdminDashboard />;
 
   return null;
 }
-

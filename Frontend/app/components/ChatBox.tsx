@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { chatApi } from "~/lib/api";
 import SupportChat from "~/components/SupportChat";
+import { useAuth } from "~/hooks/useAuth";
 
 interface ChatBoxProps {
   onClose: () => void;
@@ -16,6 +17,7 @@ type UiMessage = {
 type Tab = "ai" | "admin";
 
 export default function ChatBox({ onClose }: ChatBoxProps) {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>("ai");
 
   const [messages, setMessages] = useState<UiMessage[]>([
@@ -135,7 +137,20 @@ export default function ChatBox({ onClose }: ChatBoxProps) {
           </button>
         </div>
 
-        {activeTab === "ai" ? (
+        {user?.role === "GUEST" ? (
+          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4">
+            <div className="w-16 h-16 rounded-full bg-cyan-900/20 border border-cyan-700/50 flex items-center justify-center text-2xl">
+              🔒
+            </div>
+            <h3 className="text-cyan-300 font-mono text-lg font-bold">Acces Restrictionat</h3>
+            <p className="text-gray-400 font-mono text-sm max-w-sm">
+              Acest serviciu este disponibil doar membrilor. Creează-ți un cont pentru a interacționa cu asistentul AI sau cu administratorul!
+            </p>
+            <a href="/auth" className="mt-4 px-6 py-2 bg-transparent border border-cyan-500 text-cyan-300 rounded font-mono text-sm tracking-wider uppercase hover:bg-cyan-900/30 transition-colors">
+              Creează cont
+            </a>
+          </div>
+        ) : activeTab === "ai" ? (
           <>
             <div ref={listRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
               {messages.map((message) => (

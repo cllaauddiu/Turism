@@ -2,6 +2,8 @@ package com.licenta.user.service;
 
 import com.licenta.user.dto.AuthResponse;
 import com.licenta.user.dto.LoginRequest;
+import com.licenta.user.entity.Role;
+import com.licenta.user.entity.User;
 import com.licenta.user.security.JwtService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -45,6 +47,27 @@ public class AuthService {
                 .token(token)
                 .username(userDetails.getUsername())
                 .role(role)
+                .build();
+    }
+
+    public AuthResponse loginAsGuest() {
+        String guestUsername = "guest_" + java.util.UUID.randomUUID().toString().substring(0, 8);
+
+        User guestUser = User.builder()
+                .username(guestUsername)
+                .password("")
+                .role(Role.GUEST)
+                .build();
+
+        java.util.Map<String, Object> claims = new java.util.HashMap<>();
+        claims.put("role", Role.GUEST.name());
+
+        String token = jwtService.generateToken(claims, guestUser);
+
+        return AuthResponse.builder()
+                .token(token)
+                .username(guestUsername)
+                .role(Role.GUEST.name())
                 .build();
     }
 }
