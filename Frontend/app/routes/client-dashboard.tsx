@@ -186,10 +186,21 @@ export default function ClientDashboard() {
   const [showHolidayPlanner, setShowHolidayPlanner] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [mapFlyTo, setMapFlyTo] = useState<{ lat: number; lon: number; name: string } | null>(null);
+  const [chatInitialTab, setChatInitialTab] = useState<"ai" | "admin">("ai");
 
   useEffect(() => {
     if (!loading && !isAuthenticated) navigate("/auth");
   }, [loading, isAuthenticated, navigate]);
+
+  useEffect(() => {
+    // Listen for open-chat-client events triggered by clicking the notification
+    const handleOpenChatClient = () => {
+      setChatInitialTab("admin");
+      setShowChat(true);
+    };
+    window.addEventListener("open-chat-client", handleOpenChatClient);
+    return () => window.removeEventListener("open-chat-client", handleOpenChatClient);
+  }, []);
 
   useEffect(() => {
     const t = setInterval(() => setTime(new Date()), 1000);
@@ -276,7 +287,7 @@ export default function ClientDashboard() {
             <p className="text-sm font-semibold text-green-300 font-mono group-hover:text-green-400 transition-colors underline-offset-2 group-hover:underline">
               {user.username}
             </p>
-            <p className="text-xs text-green-700 font-mono">ver perfil</p>
+            <p className="text-xs text-green-700 font-mono">ver profil</p>
           </button>
           <span className="hidden sm:inline-block text-xs px-2 py-1 rounded border border-green-800 text-green-500 font-mono uppercase tracking-wider">
             {user.role}
@@ -328,7 +339,10 @@ export default function ClientDashboard() {
 
           <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3 max-w-3xl mx-auto">
             <button
-              onClick={() => setShowChat(true)}
+              onClick={() => {
+                setChatInitialTab("ai");
+                setShowChat(true);
+              }}
               className="w-full flex items-center justify-center gap-2 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/40 hover:border-cyan-400 text-cyan-200 px-6 py-3 rounded-lg font-mono text-sm transition-all duration-300 hover:shadow-lg hover:shadow-cyan-900/40"
             >
               AI Assistant
@@ -514,7 +528,7 @@ export default function ClientDashboard() {
             <div className="text-cyan-300 font-mono text-sm animate-pulse">Se incarca ChatBox...</div>
           </div>
         }>
-          <ChatBox onClose={() => setShowChat(false)} />
+          <ChatBox onClose={() => setShowChat(false)} initialTab={chatInitialTab} />
         </Suspense>
       )}
 

@@ -5,6 +5,7 @@ import { useAuth } from "~/hooks/useAuth";
 
 interface ChatBoxProps {
   onClose: () => void;
+  initialTab?: "ai" | "admin";
 }
 
 type UiMessage = {
@@ -16,9 +17,9 @@ type UiMessage = {
 
 type Tab = "ai" | "admin";
 
-export default function ChatBox({ onClose }: ChatBoxProps) {
+export default function ChatBox({ onClose, initialTab = "ai" }: ChatBoxProps) {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<Tab>("ai");
+  const [activeTab, setActiveTab] = useState<Tab>(initialTab);
 
   const [messages, setMessages] = useState<UiMessage[]>([
     {

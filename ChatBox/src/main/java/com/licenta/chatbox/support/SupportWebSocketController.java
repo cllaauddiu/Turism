@@ -6,6 +6,7 @@ import com.licenta.chatbox.support.dto.SessionEvent;
 import com.licenta.chatbox.support.model.SupportMessage;
 import com.licenta.chatbox.support.model.SupportSession;
 import com.licenta.chatbox.support.model.SupportSessionSummary;
+import com.licenta.chatbox.notification.NotificationEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -81,6 +82,15 @@ public class SupportWebSocketController {
 
         // Broadcast to everyone subscribed to this session
         broker.convertAndSend("/topic/support/" + session.getId(), message);
+
+        // Send Notification Event to the recipient
+        if (user.isAdmin()) {
+            broker.convertAndSendToUser(session.getClientUsername(), "/queue/notifications",
+                new NotificationEvent("CHAT", "Mesaj Nou de la Admin", payload.content(), System.currentTimeMillis()));
+        } else {
+            broker.convertAndSend("/topic/admin/notifications",
+                new NotificationEvent("CHAT", "Mesaj Nou de la " + user.getName(), payload.content(), System.currentTimeMillis()));
+        }
 
         // Update admins' session list
         broker.convertAndSend("/topic/admin/sessions",

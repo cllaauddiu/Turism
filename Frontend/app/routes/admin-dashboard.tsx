@@ -82,16 +82,16 @@ const inputCls = "w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2
 
 // ── Main admin dashboard ───────────────────────────────────────────────────
 export default function AdminDashboard() {
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, logout, isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
 
+  const [activeTab, setActiveTab] = useState<"users" | "stats" | "support">("users");
   const [users, setUsers] = useState<UserDTO[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingUsers, setLoadingUsers] = useState(true);
   const [search, setSearch] = useState("");
   const [filterRole, setFilterRole] = useState<"ALL" | UserRole>("ALL");
   const [modal, setModal] = useState<ModalState>({ mode: null });
   const [toast, setToast] = useState<{ msg: string; type: "ok" | "err" } | null>(null);
-  const [activeTab, setActiveTab] = useState<"users" | "stats" | "support">("users");
 
   // form states
   const [formUsername, setFormUsername] = useState("");
@@ -101,8 +101,17 @@ export default function AdminDashboard() {
   const [formLoading, setFormLoading] = useState(false);
 
   useEffect(() => {
-    if (!isAuthenticated) navigate("/auth");
-  }, [isAuthenticated, navigate]);
+    if (!loading && !isAuthenticated) navigate("/auth");
+    if (user && user.role !== "ADMIN") navigate("/client-dashboard");
+  }, [loading, isAuthenticated, navigate, user]);
+
+  useEffect(() => {
+    const handleOpenChatAdmin = () => {
+      setActiveTab("support");
+    };
+    window.addEventListener("open-chat-admin", handleOpenChatAdmin);
+    return () => window.removeEventListener("open-chat-admin", handleOpenChatAdmin);
+  }, []);
 
   const showToast = (msg: string, type: "ok" | "err") => {
     setToast({ msg, type });
@@ -110,14 +119,14 @@ export default function AdminDashboard() {
   };
 
   const fetchUsers = useCallback(async () => {
-    setLoading(true);
+    setLoadingUsers(true);
     try {
       const data = await usersApi.getAll();
       setUsers(data);
     } catch {
       showToast("Eroare la încărcarea utilizatorilor.", "err");
     } finally {
-      setLoading(false);
+      setLoadingUsers(false);
     }
   }, []);
 
@@ -358,7 +367,7 @@ export default function AdminDashboard() {
 
             {/* Table */}
             <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
-              {loading ? (
+              {loadingUsers ? (
                 <div className="flex items-center justify-center py-20 gap-3 text-gray-600">
                   <span className="animate-spin text-xl">⟳</span>
                   <span className="text-sm">Se încarcă...</span>

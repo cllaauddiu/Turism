@@ -6,6 +6,13 @@ export interface SessionEvent {
   session: SupportSessionSummary;
 }
 
+export interface AppNotification {
+  type: "CHAT" | "FAVORITE" | "SYSTEM";
+  title: string;
+  message: string;
+  timestamp: number;
+}
+
 const WS_URL = typeof window !== "undefined"
   ? `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}/chatbox/ws`
   : "ws://chatbox-service:8086/chatbox/ws";
@@ -56,6 +63,24 @@ export class SupportSocket {
     this.client.deactivate();
     this.connected = false;
     this.connectPromise = null;
+  }
+
+  subscribeToNotifications(onNotification: (notif: AppNotification) => void, isAdmin: boolean = false) {
+    const dest = isAdmin ? `/topic/admin/notifications` : `/user/queue/notifications`;
+    this.unsubscribe(dest);
+    const sub = this.client.subscribe(dest, (frame: IMessage) => {
+      try {
+        onNotification(JSON.parse(frame.body));
+      } catch { /* ignore */ }
+    });
+    this.subscriptions.set(dest, sub);
+  }
+
+  sendNotification(type: string, title: string, message: string) {
+    this.client.publish({
+      destination: "/app/notify/send",
+      body: JSON.stringify({ type, title, message }),
+    });
   }
 
   subscribeToSession(sessionId: string, onMessage: (msg: SupportMessage | SessionEvent) => void) {

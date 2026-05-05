@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import type { HolidayRecommendationOption } from "~/lib/api";
+import { useNotification } from "~/components/NotificationProvider";
 
 export interface FavoriteVacation {
   id: string;
@@ -36,6 +37,8 @@ export function useFavorites(username: string) {
     loadFavorites(username)
   );
 
+  const { sendNotification } = useNotification();
+
   const addFavorite = useCallback(
     (rec: HolidayRecommendationOption) => {
       const newFav: FavoriteVacation = {
@@ -55,8 +58,15 @@ export function useFavorites(username: string) {
         saveFavorites(username, updated);
         return updated;
       });
+
+      // Send websocket notification
+      sendNotification(
+        "FAVORITE",
+        "Produs Adăugat la Favorite",
+        `Ai adăugat ${rec.destinationCity} la favorite!`
+      );
     },
-    [username]
+    [username, sendNotification]
   );
 
   const removeFavorite = useCallback(

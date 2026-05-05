@@ -1,5 +1,6 @@
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
 import { AuthProvider } from "~/hooks/useAuth";
+import { NotificationProvider } from "~/components/NotificationProvider";
 import "~/app.css";
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -23,7 +24,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <AuthProvider>
-      <Outlet />
+      <NotificationProvider>
+        <Outlet />
+      </NotificationProvider>
     </AuthProvider>
   );
 }
