@@ -15,10 +15,10 @@ import java.util.List;
 @RequestMapping("/api/turism")
 public class GooglePlacesController {
 
-    private final GooglePlacesService googlePlacesService;
+    private final PlacesService placesService;
 
-    public GooglePlacesController(GooglePlacesService googlePlacesService) {
-        this.googlePlacesService = googlePlacesService;
+    public GooglePlacesController(PlacesService placesService) {
+        this.placesService = placesService;
     }
 
     @GetMapping("/places")
@@ -33,7 +33,6 @@ public class GooglePlacesController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid coordinates.");
         }
 
-        return googlePlacesService.searchNearby(lat, lon, radius, size, keyword, type);
+        return placesService.searchNearby(lat, lon, radius, size, keyword, type);
     }
 }
-
