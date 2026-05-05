@@ -1,6 +1,8 @@
 package com.licenta.aiservice.controller;
 
 import com.licenta.aiservice.dto.AiResponse;
+import com.licenta.aiservice.dto.ImageLocationRequest;
+import com.licenta.aiservice.dto.LocationResult;
 import com.licenta.aiservice.dto.PromptRequest;
 import com.licenta.aiservice.service.GeminiService;
 import jakarta.validation.Valid;
@@ -32,6 +34,18 @@ public class AiController {
     @PostMapping("/generate")
     public ResponseEntity<AiResponse> generate(@Valid @RequestBody PromptRequest request) {
         AiResponse result = geminiService.generate(request.getPrompt());
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * POST /ai/identify-location
+     * Body: { "imageBase64": "...", "mimeType": "image/jpeg" }
+     *
+     * Trimite imaginea catre Gemini (multimodal) si returneaza locatia geografica identificata.
+     */
+    @PostMapping("/identify-location")
+    public ResponseEntity<LocationResult> identifyLocation(@Valid @RequestBody ImageLocationRequest request) {
+        LocationResult result = geminiService.identifyLocation(request.getImageBase64(), request.getMimeType());
         return ResponseEntity.ok(result);
     }
 

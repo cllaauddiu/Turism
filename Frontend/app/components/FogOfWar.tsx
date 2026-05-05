@@ -543,7 +543,7 @@ export default function FogOfWar({ onClose }: FogOfWarProps) {
       {/* ── Header ── */}
       <div className="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3 bg-gray-950 border-b border-green-900/40 z-10">
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-          <span className="text-xl sm:text-2xl shrink-0">🌫️</span>
+          <span className="w-2 h-2 rounded-full bg-green-500 inline-block shrink-0" />
           <div className="min-w-0">
             <h1 className="text-green-400 font-bold tracking-widest text-xs sm:text-sm uppercase truncate">
               Fog of War
@@ -554,7 +554,7 @@ export default function FogOfWar({ onClose }: FogOfWarProps) {
         <div className="flex items-center gap-3">
           {progress && (
             <div className="hidden sm:flex items-center gap-2 text-xs">
-              <span className="text-yellow-400">⭐ {progress.score} pts</span>
+              <span className="text-yellow-400">{progress.score} pts</span>
               <span className="text-green-600">|</span>
               <span className="text-green-500">{progress.unlockedZones} unlocked</span>
             </div>

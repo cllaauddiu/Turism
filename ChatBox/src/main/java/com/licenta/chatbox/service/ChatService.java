@@ -2,6 +2,7 @@ package com.licenta.chatbox.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.licenta.chatbox.config.RabbitMQConfig;
 import com.licenta.chatbox.dto.AiGenerateRequest;
 import com.licenta.chatbox.dto.AiGenerateResponse;
 import com.licenta.chatbox.dto.ChatResponse;
@@ -9,34 +10,32 @@ import com.licenta.chatbox.dto.HolidayAiPayload;
 import com.licenta.chatbox.dto.HolidayRecommendationRequest;
 import com.licenta.chatbox.dto.HolidayRecommendationResponse;
 import com.licenta.chatbox.dto.TurismEventDto;
+import com.licenta.chatbox.dto.TurismEventsRequest;
+import com.licenta.chatbox.dto.TurismEventsResponse;
 import com.licenta.chatbox.dto.TurismPlaceDto;
+import com.licenta.chatbox.dto.TurismPlacesRequest;
+import com.licenta.chatbox.dto.TurismPlacesResponse;
 import com.licenta.chatbox.exception.ChatBoxIntegrationException;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
 @Service
 public class ChatService {
 
-    private final RestTemplate restTemplate;
-    private final ObjectMapper objectMapper;
-    private final String aiServiceUrl;
-    private final String turismServiceUrl;
+    private static final Logger log = LoggerFactory.getLogger(ChatService.class);
 
-    public ChatService(@Value("${ai.service.url}") String aiServiceUrl,
-                       @Value("${turism.service.url}") String turismServiceUrl) {
-        this.restTemplate = new RestTemplate();
+    private final RabbitTemplate rabbitTemplate;
+    private final ObjectMapper objectMapper;
+
+    public ChatService(RabbitTemplate rabbitTemplate) {
+        this.rabbitTemplate = rabbitTemplate;
         this.objectMapper = new ObjectMapper();
-        this.aiServiceUrl = aiServiceUrl;
-        this.turismServiceUrl = turismServiceUrl;
     }
 
     public ChatResponse ask(String message) {
@@ -58,22 +57,18 @@ public class ChatService {
     }
 
     private AiGenerateResponse generateWithAi(String prompt) {
-        String endpoint = aiServiceUrl + "/ai/generate";
-
         try {
-            ResponseEntity<AiGenerateResponse> response = restTemplate.postForEntity(
-                    endpoint,
-                    new AiGenerateRequest(prompt),
-                    AiGenerateResponse.class
+            AiGenerateResponse response = (AiGenerateResponse) rabbitTemplate.convertSendAndReceive(
+                    RabbitMQConfig.AI_GENERATE_QUEUE, new AiGenerateRequest(prompt)
             );
-
-            AiGenerateResponse body = response.getBody();
-            if (body == null || !StringUtils.hasText(body.response())) {
+            if (response == null || !StringUtils.hasText(response.response())) {
                 throw new ChatBoxIntegrationException("AI service returned an empty response.");
             }
-            return body;
-        } catch (RestClientException ex) {
-            throw new ChatBoxIntegrationException("ChatBox could not reach AI service.", ex);
+            return response;
+        } catch (ChatBoxIntegrationException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new ChatBoxIntegrationException("ChatBox could not reach AI service via RabbitMQ.", ex);
         }
     }
 
@@ -120,20 +115,12 @@ public class ChatService {
         if (payload == null || payload.recommendations() == null || payload.recommendations().isEmpty()) {
             return List.of(
                     new HolidayRecommendationResponse.HolidayOption(
-                            "N/A",
-                            "N/A",
+                            "N/A", "N/A",
                             "Nu am putut genera recomandari structurate",
                             rawAiText,
-                            "N/A",
-                            "N/A",
-                            "N/A",
-                            "N/A",
-                            "N/A",
+                            "N/A", "N/A", "N/A", "N/A", "N/A",
                             List.of("Incearca din nou cu aceleasi criterii"),
-                            null,
-                            null,
-                            List.of(),
-                            List.of()
+                            null, null, List.of(), List.of()
                     )
             );
         }
@@ -175,58 +162,37 @@ public class ChatService {
     }
 
     private List<TurismEventDto> fetchEvents(String city) {
-        if (!StringUtils.hasText(city)) {
-            return List.of();
-        }
-
+        if (!StringUtils.hasText(city)) return List.of();
         try {
-            var uri = UriComponentsBuilder.fromUriString(turismServiceUrl)
-                    .path("/api/turism/events")
-                    .queryParam("city", city)
-                    .queryParam("size", 3)
-                    .build()
-                    .encode()
-                    .toUri();
-
-            ResponseEntity<TurismEventDto[]> response = restTemplate.getForEntity(uri, TurismEventDto[].class);
-            TurismEventDto[] body = response.getBody();
-            if (body == null) {
-                return List.of();
-            }
-
-            return Arrays.stream(body)
-                    .sorted(Comparator.comparing(event -> event.date() == null ? "9999-99-99" : event.date()))
+            TurismEventsResponse response = (TurismEventsResponse) rabbitTemplate.convertSendAndReceive(
+                    RabbitMQConfig.TURISM_EVENTS_QUEUE, new TurismEventsRequest(city, 3)
+            );
+            if (response == null || response.events() == null) return List.of();
+            return response.events().stream()
+                    .sorted(Comparator.comparing(e -> e.date() == null ? "9999-99-99" : e.date()))
                     .toList();
-        } catch (RestClientException ex) {
+        } catch (Exception ex) {
+            log.warn("Failed to fetch events via RabbitMQ for city={}: {}", city, ex.getMessage());
             return List.of();
         }
     }
 
     private List<TurismPlaceDto> fetchPlaces(Double lat, Double lon) {
         try {
-            var uri = UriComponentsBuilder.fromUriString(turismServiceUrl)
-                    .path("/api/turism/places")
-                    .queryParam("lat", lat)
-                    .queryParam("lon", lon)
-                    .queryParam("size", 3)
-                    .build()
-                    .encode()
-                    .toUri();
-
-            ResponseEntity<TurismPlaceDto[]> response = restTemplate.getForEntity(uri, TurismPlaceDto[].class);
-            TurismPlaceDto[] body = response.getBody();
-            return body == null ? List.of() : List.of(body);
-        } catch (RestClientException ex) {
+            TurismPlacesResponse response = (TurismPlacesResponse) rabbitTemplate.convertSendAndReceive(
+                    RabbitMQConfig.TURISM_PLACES_QUEUE, new TurismPlacesRequest(lat, lon, 3)
+            );
+            if (response == null || response.places() == null) return List.of();
+            return response.places();
+        } catch (Exception ex) {
+            log.warn("Failed to fetch places via RabbitMQ for lat={}, lon={}: {}", lat, lon, ex.getMessage());
             return List.of();
         }
     }
 
     private HolidayAiPayload parseHolidayPayload(String rawAiText) {
         String json = extractJson(rawAiText);
-        if (!StringUtils.hasText(json)) {
-            return null;
-        }
-
+        if (!StringUtils.hasText(json)) return null;
         try {
             return objectMapper.readValue(json, HolidayAiPayload.class);
         } catch (JsonProcessingException ex) {
@@ -235,15 +201,10 @@ public class ChatService {
     }
 
     private String extractJson(String text) {
-        if (!StringUtils.hasText(text)) {
-            return null;
-        }
-
+        if (!StringUtils.hasText(text)) return null;
         int start = text.indexOf('{');
         int end = text.lastIndexOf('}');
-        if (start < 0 || end <= start) {
-            return null;
-        }
+        if (start < 0 || end <= start) return null;
         return text.substring(start, end + 1);
     }
 }

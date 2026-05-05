@@ -30,12 +30,16 @@ public class AuthService {
         );
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(request.getUsername());
-        String token = jwtService.generateToken(userDetails);
 
         String role = userDetails.getAuthorities().stream()
                 .findFirst()
                 .map(a -> a.getAuthority().replace("ROLE_", ""))
                 .orElse("UNKNOWN");
+
+        java.util.Map<String, Object> claims = new java.util.HashMap<>();
+        claims.put("role", role);
+
+        String token = jwtService.generateToken(claims, userDetails);
 
         return AuthResponse.builder()
                 .token(token)

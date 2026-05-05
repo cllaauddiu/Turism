@@ -154,7 +154,7 @@ function RegionCard({ icon, name, region, color, delay }: RegionCardProps) {
     >
       <div className={`absolute inset-0 bg-linear-to-br ${color} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
       <div className="relative z-10">
-        <div className="text-3xl mb-3">{icon}</div>
+        <div className="text-xs font-mono font-bold text-green-600 mb-3 tracking-widest">{icon}</div>
         <h3 className="text-white font-semibold text-sm">{name}</h3>
         <p className="text-green-400/70 text-xs mt-1 font-mono">{region}</p>
       </div>
@@ -316,13 +316,13 @@ export default function ClientDashboard() {
           {/* CTA buttons */}
           <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-3 justify-center mt-6 sm:mt-8 px-2 sm:px-0">
             <button onClick={() => setShowMap(true)} className="flex items-center gap-2 bg-green-500/10 hover:bg-green-500/20 border border-green-500/40 hover:border-green-400 text-green-300 px-6 py-2.5 rounded-lg font-mono text-sm transition-all duration-300 hover:shadow-lg hover:shadow-green-900/40">
-              <span>🗺️</span> Hartă Interactivă
+              Hartă Interactivă
             </button>
             <button onClick={() => setShowFog(true)} className="flex items-center gap-2 bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/40 hover:border-teal-400 text-teal-300 px-6 py-2.5 rounded-lg font-mono text-sm transition-all duration-300 hover:shadow-lg hover:shadow-teal-900/40">
-              <span>🔭</span> Explorează Regiuni
+              Fog of War
             </button>
             <button onClick={() => setShowSearch(true)} className="flex items-center gap-2 bg-gray-800/60 hover:bg-gray-700/60 border border-gray-700 hover:border-green-600/60 text-gray-300 hover:text-green-300 px-6 py-2.5 rounded-lg font-mono text-sm transition-all duration-300 hover:shadow-lg hover:shadow-green-900/30">
-              <span>🔎</span> Search
+              Caută Locație
             </button>
           </div>
 
@@ -331,14 +331,14 @@ export default function ClientDashboard() {
               onClick={() => setShowChat(true)}
               className="w-full flex items-center justify-center gap-2 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/40 hover:border-cyan-400 text-cyan-200 px-6 py-3 rounded-lg font-mono text-sm transition-all duration-300 hover:shadow-lg hover:shadow-cyan-900/40"
             >
-              <span>AI</span> Chat cu AI
+              AI Assistant
             </button>
 
             <button
               onClick={() => setShowHolidayPlanner(true)}
               className="w-full flex items-center justify-center gap-2 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/40 hover:border-indigo-400 text-indigo-200 px-6 py-3 rounded-lg font-mono text-sm transition-all duration-300 hover:shadow-lg hover:shadow-indigo-900/40"
             >
-              <span>🌴</span> Planner Vacanta AI
+              Planner Vacanță
             </button>
           </div>
         </div>
@@ -366,14 +366,14 @@ export default function ClientDashboard() {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            <RegionCard icon="🏔️" name="Europa" region="35-71°N · 25°W-45°E" color="from-blue-900/20 to-indigo-900/20" delay="0ms" />
-            <RegionCard icon="🌵" name="Africa" region="37°N-35°S · 17°W-51°E" color="from-yellow-900/20 to-orange-900/20" delay="50ms" />
-            <RegionCard icon="🌏" name="Asia" region="10-77°N · 26-180°E" color="from-red-900/20 to-rose-900/20" delay="100ms" />
-            <RegionCard icon="🗽" name="America de N." region="7-84°N · 55-168°W" color="from-green-900/20 to-teal-900/20" delay="150ms" />
-            <RegionCard icon="🌿" name="America de S." region="12°N-56°S · 35-81°W" color="from-emerald-900/20 to-green-900/20" delay="200ms" />
-            <RegionCard icon="🦘" name="Oceania" region="10-47°S · 113-180°E" color="from-cyan-900/20 to-sky-900/20" delay="250ms" />
-            <RegionCard icon="🧊" name="Antarctica" region="66-90°S · 180°W-180°E" color="from-slate-900/20 to-gray-900/20" delay="300ms" />
-            <RegionCard icon="🌊" name="Oceanul Pacific" region="65°N-60°S" color="from-blue-900/20 to-cyan-900/20" delay="350ms" />
+            <RegionCard icon="EU" name="Europa" region="35-71°N · 25°W-45°E" color="from-blue-900/20 to-indigo-900/20" delay="0ms" />
+            <RegionCard icon="AF" name="Africa" region="37°N-35°S · 17°W-51°E" color="from-yellow-900/20 to-orange-900/20" delay="50ms" />
+            <RegionCard icon="AS" name="Asia" region="10-77°N · 26-180°E" color="from-red-900/20 to-rose-900/20" delay="100ms" />
+            <RegionCard icon="NA" name="America de N." region="7-84°N · 55-168°W" color="from-green-900/20 to-teal-900/20" delay="150ms" />
+            <RegionCard icon="SA" name="America de S." region="12°N-56°S · 35-81°W" color="from-emerald-900/20 to-green-900/20" delay="200ms" />
+            <RegionCard icon="OC" name="Oceania" region="10-47°S · 113-180°E" color="from-cyan-900/20 to-sky-900/20" delay="250ms" />
+            <RegionCard icon="AN" name="Antarctica" region="66-90°S · 180°W-180°E" color="from-slate-900/20 to-gray-900/20" delay="300ms" />
+            <RegionCard icon="PC" name="Oceanul Pacific" region="65°N-60°S" color="from-blue-900/20 to-cyan-900/20" delay="350ms" />
           </div>
         </div>
       </section>
@@ -385,7 +385,7 @@ export default function ClientDashboard() {
           {/* Panel 1 – Locație */}
           <div className="bg-gray-900/70 backdrop-blur border border-green-900/40 rounded-xl p-6 hover:border-green-700/60 transition-all">
             <div className="flex items-center gap-2 mb-4">
-              <span className="text-green-400">📍</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block shrink-0" />
               <h3 className="text-green-400 font-mono text-xs uppercase tracking-widest">Locație Curentă</h3>
             </div>
             <div className="space-y-2 font-mono text-sm">
@@ -411,7 +411,7 @@ export default function ClientDashboard() {
           {/* Panel 2 – Condiții */}
           <div className="bg-gray-900/70 backdrop-blur border border-green-900/40 rounded-xl p-6 hover:border-green-700/60 transition-all">
             <div className="flex items-center gap-2 mb-4">
-              <span className="text-green-400">🌐</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block shrink-0" />
               <h3 className="text-green-400 font-mono text-xs uppercase tracking-widest">Date Geografice</h3>
             </div>
             <div className="space-y-2 font-mono text-sm">
@@ -437,7 +437,7 @@ export default function ClientDashboard() {
           {/* Panel 3 – Sesiune */}
           <div className="bg-gray-900/70 backdrop-blur border border-green-900/40 rounded-xl p-6 hover:border-green-700/60 transition-all">
             <div className="flex items-center gap-2 mb-4">
-              <span className="text-green-400">🛰️</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block shrink-0" />
               <h3 className="text-green-400 font-mono text-xs uppercase tracking-widest">Sesiune Activă</h3>
             </div>
             <div className="space-y-2 font-mono text-sm">

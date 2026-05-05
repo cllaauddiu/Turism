@@ -18,6 +18,24 @@ services:
     networks:
       - licenta-net
 
+  # ── RabbitMQ ─────────────────────────────────────────────────────────────────
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - licenta-net
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # ── PostgreSQL ───────────────────────────────────────────────────────────────
   postgres:
     image: postgres:16-alpine
@@ -26,6 +44,8 @@ services:
       POSTGRES_DB: User-Licenta
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 1234
+    ports:
+      - "5433:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./db-init:/docker-entrypoint-initdb.d
@@ -82,6 +102,13 @@ services:
     container_name: ai-service
     environment:
       GEMINI_API_KEY: ${GEMINI_API_KEY}
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
     networks:
       - licenta-net
     labels:
@@ -100,12 +127,15 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/gamedb
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: 1234
-      AI_SERVICE_URL: http://ai-service:8083
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
     depends_on:
       postgres:
         condition: service_healthy
-      ai-service:
-        condition: service_started
+      rabbitmq:
+        condition: service_healthy
     networks:
       - licenta-net
     labels:
@@ -123,6 +153,13 @@ services:
     environment:
       TICKETMASTER_API_KEY: ${TICKETMASTER_API_KEY}
       SERPAPI_API_KEY: ${SERPAPI_API_KEY}
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
     networks:
       - licenta-net
     labels:
@@ -138,11 +175,13 @@ services:
       dockerfile: Dockerfile
     container_name: chatbox-service
     environment:
-      AI_SERVICE_URL: http://ai-service:8083
-      TURISM_SERVICE_URL: http://turism-service:8085
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
     depends_on:
-      ai-service:
-        condition: service_started
+      rabbitmq:
+        condition: service_healthy
     networks:
       - licenta-net
     labels:

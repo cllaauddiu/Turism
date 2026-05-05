@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router";
 import { useAuth } from "~/hooks/useAuth";
 import { usersApi, type UserDTO, type UserRole } from "~/lib/api";
+import AdminSupportPanel from "~/components/AdminSupportPanel";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 type ModalMode = "create" | "edit" | "delete" | "role" | null;
@@ -13,26 +14,23 @@ interface ModalState {
 
 // ── Small reusable components ──────────────────────────────────────────────
 
-function StatCard({ label, value, icon, color }: { label: string; value: number | string; icon: string; color: string }) {
+function StatCard({ label, value, color }: { label: string; value: number | string; icon: string; color: string }) {
   return (
-    <div className={`bg-gray-900 border ${color} rounded-xl p-5 flex items-center gap-4`}>
-      <div className="text-3xl">{icon}</div>
-      <div>
-        <p className="text-2xl font-bold text-white">{value}</p>
-        <p className="text-xs text-gray-500 uppercase tracking-widest mt-0.5">{label}</p>
-      </div>
+    <div className={`bg-gray-900 border ${color} rounded-xl p-5`}>
+      <p className="text-2xl font-bold text-white">{value}</p>
+      <p className="text-xs text-gray-500 uppercase tracking-widest mt-1">{label}</p>
     </div>
   );
 }
 
 function Badge({ role }: { role: UserRole }) {
   return role === "ADMIN" ? (
-    <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-violet-900/50 border border-violet-700/50 text-violet-300 font-mono font-semibold">
-      ⚡ ADMIN
+    <span className="inline-flex items-center text-xs px-2 py-0.5 rounded-full bg-violet-900/50 border border-violet-700/50 text-violet-300 font-mono font-semibold">
+      ADMIN
     </span>
   ) : (
-    <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-emerald-900/50 border border-emerald-700/50 text-emerald-300 font-mono font-semibold">
-      👤 CLIENT
+    <span className="inline-flex items-center text-xs px-2 py-0.5 rounded-full bg-emerald-900/50 border border-emerald-700/50 text-emerald-300 font-mono font-semibold">
+      CLIENT
     </span>
   );
 }
@@ -93,7 +91,7 @@ export default function AdminDashboard() {
   const [filterRole, setFilterRole] = useState<"ALL" | UserRole>("ALL");
   const [modal, setModal] = useState<ModalState>({ mode: null });
   const [toast, setToast] = useState<{ msg: string; type: "ok" | "err" } | null>(null);
-  const [activeTab, setActiveTab] = useState<"users" | "stats">("users");
+  const [activeTab, setActiveTab] = useState<"users" | "stats" | "support">("users");
 
   // form states
   const [formUsername, setFormUsername] = useState("");
@@ -242,7 +240,7 @@ export default function AdminDashboard() {
 
         {/* Tabs */}
         <div className="flex gap-1 bg-gray-900/60 border border-gray-800 rounded-xl p-1 w-fit">
-          {(["users", "stats"] as const).map((t) => (
+          {(["users", "stats", "support"] as const).map((t) => (
             <button
               key={t}
               onClick={() => setActiveTab(t)}
@@ -252,7 +250,7 @@ export default function AdminDashboard() {
                   : "text-gray-500 hover:text-gray-300"
               }`}
             >
-              {t === "users" ? "👥 Utilizatori" : "📊 Statistici"}
+              {t === "users" ? "Utilizatori" : t === "stats" ? "Statistici" : "Suport"}
             </button>
           ))}
         </div>
@@ -261,9 +259,9 @@ export default function AdminDashboard() {
         {activeTab === "stats" && (
           <div className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <StatCard label="Total utilizatori" value={users.length} icon="👥" color="border-gray-800" />
-              <StatCard label="Administratori" value={adminCount} icon="⚡" color="border-violet-800/50" />
-              <StatCard label="Clienți" value={clientCount} icon="👤" color="border-emerald-800/50" />
+              <StatCard label="Total utilizatori" value={users.length} icon="·" color="border-gray-800" />
+              <StatCard label="Administratori" value={adminCount} icon="·" color="border-violet-800/50" />
+              <StatCard label="Clienți" value={clientCount} icon="·" color="border-emerald-800/50" />
             </div>
 
             {/* Role distribution bar */}
@@ -317,7 +315,7 @@ export default function AdminDashboard() {
               <div className="flex flex-col sm:flex-row gap-2 flex-1">
                 {/* Search */}
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 text-sm">🔍</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 text-sm">⌕</span>
                   <input
                     type="text"
                     placeholder="Caută utilizator..."
@@ -367,7 +365,7 @@ export default function AdminDashboard() {
                 </div>
               ) : filtered.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 text-gray-700">
-                  <span className="text-4xl mb-3">🔍</span>
+                  <span className="text-2xl mb-3 text-gray-700">—</span>
                   <p className="text-sm">Niciun utilizator găsit.</p>
                 </div>
               ) : (
@@ -409,21 +407,21 @@ export default function AdminDashboard() {
                               title="Schimbă rol"
                               className="p-1.5 rounded-lg border border-gray-700 text-gray-500 hover:text-violet-400 hover:border-violet-700/60 transition-all text-xs"
                             >
-                              🔄
+                              ↻
                             </button>
                             <button
                               onClick={() => openModal("edit", u)}
                               title="Editează"
                               className="p-1.5 rounded-lg border border-gray-700 text-gray-500 hover:text-blue-400 hover:border-blue-700/60 transition-all text-xs"
                             >
-                              ✏️
+                              ✎
                             </button>
                             <button
                               onClick={() => openModal("delete", u)}
                               title="Șterge"
                               className="p-1.5 rounded-lg border border-gray-700 text-gray-500 hover:text-red-400 hover:border-red-700/60 transition-all text-xs"
                             >
-                              🗑️
+                              ✕
                             </button>
                           </div>
                         </td>
@@ -434,6 +432,13 @@ export default function AdminDashboard() {
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {/* ── SUPPORT TAB ── */}
+        {activeTab === "support" && (
+          <div className="space-y-4 h-[600px]">
+            <AdminSupportPanel />
           </div>
         )}
       </main>
@@ -455,7 +460,7 @@ export default function AdminDashboard() {
       {/* CREATE */}
       {modal.mode === "create" && (
         <Modal onClose={closeModal}>
-          <ModalHeader title="Utilizator nou" icon="➕" onClose={closeModal} />
+          <ModalHeader title="Utilizator nou" icon="+" onClose={closeModal} />
           <div className="p-6 space-y-4">
             <Field label="Nume utilizator">
               <input value={formUsername} onChange={(e) => setFormUsername(e.target.value)} placeholder="username" className={inputCls} />
@@ -477,7 +482,7 @@ export default function AdminDashboard() {
       {/* EDIT */}
       {modal.mode === "edit" && (
         <Modal onClose={closeModal}>
-          <ModalHeader title={`Editează — ${modal.user?.username}`} icon="✏️" onClose={closeModal} />
+          <ModalHeader title={`Editează — ${modal.user?.username}`} icon="✎" onClose={closeModal} />
           <div className="p-6 space-y-4">
             <Field label="Nume utilizator">
               <input value={formUsername} onChange={(e) => setFormUsername(e.target.value)} placeholder="username" className={inputCls} />
@@ -499,7 +504,7 @@ export default function AdminDashboard() {
       {/* DELETE */}
       {modal.mode === "delete" && (
         <Modal onClose={closeModal}>
-          <ModalHeader title="Confirmare ștergere" icon="🗑️" onClose={closeModal} />
+          <ModalHeader title="Confirmare ștergere" icon="✕" onClose={closeModal} />
           <div className="p-6">
             <p className="text-gray-400 text-sm">
               Ești sigur că vrei să ștergi utilizatorul{" "}
@@ -520,7 +525,7 @@ export default function AdminDashboard() {
       {/* CHANGE ROLE */}
       {modal.mode === "role" && (
         <Modal onClose={closeModal}>
-          <ModalHeader title={`Schimbă rol — ${modal.user?.username}`} icon="🔄" onClose={closeModal} />
+          <ModalHeader title={`Schimbă rol — ${modal.user?.username}`} icon="↻" onClose={closeModal} />
           <div className="p-6 space-y-4">
             <p className="text-gray-500 text-xs">Rol curent: <Badge role={modal.user!.role as UserRole} /></p>
             <Field label="Rol nou">

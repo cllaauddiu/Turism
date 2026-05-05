@@ -2,31 +2,29 @@ package com.licenta.games.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.licenta.games.config.RabbitMQConfig;
+import com.licenta.games.dto.AiRpcRequest;
+import com.licenta.games.dto.AiRpcResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class AiClientService {
 
     private static final Logger log = LoggerFactory.getLogger(AiClientService.class);
 
-    @Value("${ai.service.url}")
-    private String aiServiceUrl;
+    private final RabbitTemplate rabbitTemplate;
+    private final ObjectMapper objectMapper;
 
-    private final RestTemplate restTemplate = new RestTemplate();
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    public AiClientService(RabbitTemplate rabbitTemplate) {
+        this.rabbitTemplate = rabbitTemplate;
+        this.objectMapper = new ObjectMapper();
+    }
 
-    /**
-     * Generează o întrebare grilă cu 4 opțiuni despre zona geografică dată.
-     * Răspunsul corect este stocat pe server (correctOptionIndex).
-     */
     public RiddleResponse generateRiddle(String zoneName, String continent, String landmarkDescription, int difficulty) {
         String diffLabel = difficulty == 1 ? "easy" : difficulty == 2 ? "medium" : "hard";
 
@@ -46,23 +44,14 @@ public class AiClientService {
             diffLabel, zoneName, continent, landmarkDescription
         );
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        Map<String, String> body = Map.of("prompt", prompt);
-        HttpEntity<Map<String, String>> entity = new HttpEntity<>(body, headers);
-
         try {
-            ResponseEntity<Map> response = restTemplate.postForEntity(
-                aiServiceUrl + "/ai/generate", entity, Map.class
+            AiRpcResponse response = (AiRpcResponse) rabbitTemplate.convertSendAndReceive(
+                    RabbitMQConfig.AI_GENERATE_QUEUE, new AiRpcRequest(prompt)
             );
 
-            if (response.getBody() == null) return fallbackRiddle(zoneName);
+            if (response == null) return fallbackRiddle(zoneName);
 
-            String rawText = (String) response.getBody().get("response");
-            if (rawText == null) return fallbackRiddle(zoneName);
-
-            // Curăță markdown code fences dacă există
-            rawText = rawText.trim();
+            String rawText = response.response().trim();
             if (rawText.startsWith("```")) {
                 rawText = rawText.replaceAll("```[a-zA-Z]*\\n?", "").replace("```", "").trim();
             }
@@ -86,13 +75,11 @@ public class AiClientService {
                 return fallbackRiddle(zoneName);
             }
 
-            // Extrage textul răspunsului corect (ex: "A: Paris" → "Paris")
             String correctAnswer = options.get(correctIndex);
-
             return new RiddleResponse(question, correctAnswer, hint, options, correctIndex);
 
         } catch (Exception e) {
-            log.error("Error calling AI service for riddle generation: {}", e.getMessage());
+            log.error("Error calling AI service via RabbitMQ for riddle generation: {}", e.getMessage());
             return fallbackRiddle(zoneName);
         }
     }

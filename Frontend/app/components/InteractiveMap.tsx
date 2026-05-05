@@ -476,7 +476,7 @@ export default function InteractiveMap({ onClose, flyTo }: InteractiveMapProps) 
           {/* Modal header */}
           <div className="flex items-center justify-between px-3 sm:px-5 py-2 sm:py-3 border-b border-green-900/40 bg-gray-950/90 backdrop-blur z-10 shrink-0">
             <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-              <span className="text-green-400 text-base sm:text-lg shrink-0">🗺️</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block shrink-0" />
               <div className="min-w-0">
                 <h2 className="text-green-300 font-mono font-bold text-xs sm:text-sm tracking-widest uppercase truncate">
                   Hartă Interactivă

@@ -55,6 +55,31 @@ export interface AuthResponse {
   role: string;
 }
 
+const AI_BASE_URL = typeof window !== "undefined"
+  ? "/ai"
+  : (process.env.AI_URL ?? "http://ai-service:8083/ai");
+
+const aiAxios = axios.create({
+  baseURL: AI_BASE_URL,
+  headers: { "Content-Type": "application/json" },
+});
+
+export interface LocationResult {
+  locationName: string | null;
+  city: string | null;
+  country: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  confidence: "high" | "medium" | "low";
+}
+
+export const aiApi = {
+  identifyLocation: (imageBase64: string, mimeType: string) =>
+    aiAxios
+      .post<LocationResult>("/identify-location", { imageBase64, mimeType })
+      .then((r) => r.data),
+};
+
 export const authApi = {
   login: (data: LoginRequest) =>
     api.post<AuthResponse>("/auth/login", data).then((r) => r.data),
@@ -266,6 +291,57 @@ export const chatApi = {
     chatboxAxios
       .post<HolidayRecommendationResponse>("/holiday/recommend", payload)
       .then((r) => r.data),
+};
+
+// ── Support Chat (WebSocket-backed) ──────────────────────────────────────────
+
+export interface SupportMessage {
+  id: string;
+  sessionId: string;
+  senderUsername: string;
+  senderRole: "CLIENT" | "ADMIN";
+  content: string;
+  createdAt: string;
+}
+
+export interface SupportSessionSummary {
+  id: string;
+  clientUsername: string;
+  createdAt: string;
+  lastMessageAt: string;
+  status: "OPEN" | "CLOSED";
+  messageCount: number;
+  lastMessagePreview: string;
+}
+
+const SUPPORT_BASE_URL = typeof window !== "undefined"
+  ? "/chatbox/support"
+  : (process.env.SUPPORT_URL ?? "http://chatbox-service:8086/chatbox/support");
+
+const supportAxios = axios.create({
+  baseURL: SUPPORT_BASE_URL,
+  headers: { "Content-Type": "application/json" },
+});
+
+supportAxios.interceptors.request.use((config) => {
+  if (typeof window !== "undefined") {
+    const token = localStorage.getItem("token");
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+export const supportApi = {
+  listSessions: () =>
+    supportAxios.get<SupportSessionSummary[]>("/sessions").then((r) => r.data),
+  getMyActiveSession: () =>
+    supportAxios
+      .get<SupportSessionSummary | "">("/sessions/me", {
+        validateStatus: (s) => s === 200 || s === 204,
+      })
+      .then((r) => (r.status === 204 ? null : (r.data as SupportSessionSummary))),
+  getMessages: (sessionId: string) =>
+    supportAxios.get<SupportMessage[]>(`/sessions/${sessionId}/messages`).then((r) => r.data),
 };
 
 // ── Fog of War Game ───────────────────────────────────────────────────────────

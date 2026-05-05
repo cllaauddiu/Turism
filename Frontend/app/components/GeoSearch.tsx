@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
+import { aiApi } from "~/lib/api";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 type SearchMode = "name" | "coords" | "image";
@@ -62,7 +63,7 @@ function ModeTab({
           : "border-green-900/30 text-green-800 hover:text-green-600 hover:border-green-800/60 hover:bg-green-950/30"
       }`}
     >
-      <span className="text-base">{icon}</span>
+      {icon && <span className="text-base">{icon}</span>}
       {label}
     </button>
   );
@@ -227,117 +228,123 @@ export default function GeoSearch({ onClose, onViewOnMap }: GeoSearchProps) {
     setImageError("");
     setImageResult(null);
 
-    // Read EXIF GPS data from image
     try {
-      const buffer = await imageFile.arrayBuffer();
-      const view = new DataView(buffer);
-
-      let noExif = false;
-
-      // Check for JPEG SOI marker
-      if (view.getUint16(0) !== 0xFFD8) {
-        noExif = true;
-      }
-
-      if (!noExif) {
+      // ── Pas 1: încearcă EXIF GPS (rapid, precis) ──────────────────────────
       let foundGPS = false;
-      let offset = 2;
 
-      while (offset < view.byteLength - 4) {
-        const marker = view.getUint16(offset);
-        const segLen = view.getUint16(offset + 2);
+      if (imageFile.type === "image/jpeg") {
+        try {
+          const buffer = await imageFile.arrayBuffer();
+          const view = new DataView(buffer);
 
-        if (marker === 0xFFE1) {
-          // APP1 – EXIF
-          const exifHeader = String.fromCharCode(
-            view.getUint8(offset + 4), view.getUint8(offset + 5),
-            view.getUint8(offset + 6), view.getUint8(offset + 7)
-          );
-          if (exifHeader === "Exif") {
-            const tiffOffset = offset + 10;
-            const byteOrder = view.getUint16(tiffOffset);
-            const littleEndian = byteOrder === 0x4949;
+          if (view.getUint16(0) === 0xFFD8) {
+            let offset = 2;
+            while (offset < view.byteLength - 4) {
+              const marker = view.getUint16(offset);
+              const segLen = view.getUint16(offset + 2);
 
-            const ifdOffset = tiffOffset + view.getUint32(tiffOffset + 4, littleEndian);
-            const numEntries = view.getUint16(ifdOffset, littleEndian);
+              if (marker === 0xFFE1) {
+                const exifHeader = String.fromCharCode(
+                  view.getUint8(offset + 4), view.getUint8(offset + 5),
+                  view.getUint8(offset + 6), view.getUint8(offset + 7)
+                );
+                if (exifHeader === "Exif") {
+                  const tiffOffset = offset + 10;
+                  const littleEndian = view.getUint16(tiffOffset) === 0x4949;
+                  const ifdOffset = tiffOffset + view.getUint32(tiffOffset + 4, littleEndian);
+                  const numEntries = view.getUint16(ifdOffset, littleEndian);
 
-            let gpsIfdOffset = -1;
-            for (let i = 0; i < numEntries; i++) {
-              const entryOffset = ifdOffset + 2 + i * 12;
-              const tag = view.getUint16(entryOffset, littleEndian);
-              if (tag === 0x8825) { // GPS IFD pointer
-                gpsIfdOffset = tiffOffset + view.getUint32(entryOffset + 8, littleEndian);
-                break;
-              }
-            }
+                  let gpsIfdOffset = -1;
+                  for (let i = 0; i < numEntries; i++) {
+                    const ep = ifdOffset + 2 + i * 12;
+                    if (view.getUint16(ep, littleEndian) === 0x8825) {
+                      gpsIfdOffset = tiffOffset + view.getUint32(ep + 8, littleEndian);
+                      break;
+                    }
+                  }
 
-            if (gpsIfdOffset > -1) {
-              const gpsEntries = view.getUint16(gpsIfdOffset, littleEndian);
-              let latDMS: number[] | null = null, lonDMS: number[] | null = null;
-              let latRef = "N", lonRef = "E";
+                  if (gpsIfdOffset > -1) {
+                    const gpsEntries = view.getUint16(gpsIfdOffset, littleEndian);
+                    let latDMS: number[] | null = null, lonDMS: number[] | null = null;
+                    let latRef = "N", lonRef = "E";
 
-              for (let i = 0; i < gpsEntries; i++) {
-                const e = gpsIfdOffset + 2 + i * 12;
-                const tag = view.getUint16(e, littleEndian);
-                const valOffset = tiffOffset + view.getUint32(e + 8, littleEndian);
+                    for (let i = 0; i < gpsEntries; i++) {
+                      const ep = gpsIfdOffset + 2 + i * 12;
+                      const tag = view.getUint16(ep, littleEndian);
+                      const vo = tiffOffset + view.getUint32(ep + 8, littleEndian);
+                      if (tag === 0x0001) latRef = String.fromCharCode(view.getUint8(ep + 8));
+                      if (tag === 0x0003) lonRef = String.fromCharCode(view.getUint8(ep + 8));
+                      if (tag === 0x0002) latDMS = [
+                        view.getUint32(vo, littleEndian) / view.getUint32(vo + 4, littleEndian),
+                        view.getUint32(vo + 8, littleEndian) / view.getUint32(vo + 12, littleEndian),
+                        view.getUint32(vo + 16, littleEndian) / view.getUint32(vo + 20, littleEndian),
+                      ];
+                      if (tag === 0x0004) lonDMS = [
+                        view.getUint32(vo, littleEndian) / view.getUint32(vo + 4, littleEndian),
+                        view.getUint32(vo + 8, littleEndian) / view.getUint32(vo + 12, littleEndian),
+                        view.getUint32(vo + 16, littleEndian) / view.getUint32(vo + 20, littleEndian),
+                      ];
+                    }
 
-                if (tag === 0x0001) latRef = String.fromCharCode(view.getUint8(e + 8));
-                if (tag === 0x0003) lonRef = String.fromCharCode(view.getUint8(e + 8));
-                if (tag === 0x0002) {
-                  latDMS = [
-                    view.getUint32(valOffset, littleEndian) / view.getUint32(valOffset + 4, littleEndian),
-                    view.getUint32(valOffset + 8, littleEndian) / view.getUint32(valOffset + 12, littleEndian),
-                    view.getUint32(valOffset + 16, littleEndian) / view.getUint32(valOffset + 20, littleEndian),
-                  ];
+                    if (latDMS && lonDMS) {
+                      const lat = (latDMS[0] + latDMS[1] / 60 + latDMS[2] / 3600) * (latRef === "S" ? -1 : 1);
+                      const lon = (lonDMS[0] + lonDMS[1] / 60 + lonDMS[2] / 3600) * (lonRef === "W" ? -1 : 1);
+                      const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1`;
+                      const geo = await fetch(url, { headers: { "Accept-Language": "ro,en" } }).then((r) => r.json());
+                      if (!geo.error) {
+                        setImageResult({
+                          name: geo.display_name?.split(",").slice(0, 3).join(",").trim() ?? `${lat.toFixed(5)}, ${lon.toFixed(5)}`,
+                          lat, lon,
+                          type: "gps exif",
+                          country: geo.address?.country,
+                          region: geo.address?.state ?? geo.address?.county ?? geo.address?.city,
+                        });
+                        foundGPS = true;
+                      }
+                    }
+                  }
                 }
-                if (tag === 0x0004) {
-                  lonDMS = [
-                    view.getUint32(valOffset, littleEndian) / view.getUint32(valOffset + 4, littleEndian),
-                    view.getUint32(valOffset + 8, littleEndian) / view.getUint32(valOffset + 12, littleEndian),
-                    view.getUint32(valOffset + 16, littleEndian) / view.getUint32(valOffset + 20, littleEndian),
-                  ];
-                }
               }
-
-              if (latDMS && lonDMS) {
-                const lat = (latDMS[0] + latDMS[1] / 60 + latDMS[2] / 3600) * (latRef === "S" ? -1 : 1);
-                const lon = (lonDMS[0] + lonDMS[1] / 60 + lonDMS[2] / 3600) * (lonRef === "W" ? -1 : 1);
-
-                // Reverse geocode the EXIF coords
-                const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1`;
-                const resp = await fetch(url, { headers: { "Accept-Language": "ro,en" } });
-                const geo = await resp.json();
-
-                setImageResult({
-                  name: geo.display_name?.split(",").slice(0, 3).join(",").trim() ?? `${lat.toFixed(5)}, ${lon.toFixed(5)}`,
-                  lat,
-                  lon,
-                  type: "photo location",
-                  country: geo.address?.country,
-                  region: geo.address?.state ?? geo.address?.county ?? geo.address?.city,
-                });
-                foundGPS = true;
-              }
+              offset += 2 + segLen;
+              if (marker === 0xFFDA) break;
             }
           }
+        } catch {
+          // EXIF eșuat – continuăm cu Gemini
         }
-        offset += 2 + segLen;
-        if (marker === 0xFFDA) break; // SOS – end of metadata
       }
 
+      // ── Pas 2: dacă nu am GPS EXIF, trimitem la Gemini vision ─────────────
       if (!foundGPS) {
-        noExif = true;
-      }
-      } // end if (!noExif)
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const dataUrl = e.target?.result as string;
+            // data:image/jpeg;base64,<data> → extragem doar <data>
+            resolve(dataUrl.split(",")[1]);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(imageFile);
+        });
 
-      if (noExif) {
-        setImageError(
-          "Imaginea nu conține date GPS EXIF. Fotografiile făcute cu GPS activ pe telefon conțin de obicei aceste date. Poți activa locația în camera foto și reîncerca."
-        );
+        const result = await aiApi.identifyLocation(base64, imageFile.type);
+
+        if (result.latitude !== null && result.longitude !== null) {
+          setImageResult({
+            name: result.locationName ?? `${result.city ?? ""}, ${result.country ?? ""}`.replace(/^, |, $/, ""),
+            lat: result.latitude,
+            lon: result.longitude,
+            type: `ai (${result.confidence})`,
+            country: result.country ?? undefined,
+            region: result.city ?? undefined,
+          });
+        } else {
+          setImageError("Gemini nu a putut identifica locația din această imagine. Încearcă cu o fotografie mai clară a unui loc recognoscibil.");
+        }
       }
 
     } catch {
-      setImageError("Eroare la procesarea imaginii. Încearcă alt fișier.");
+      setImageError("Eroare la procesarea imaginii. Verifică conexiunea și încearcă din nou.");
     } finally {
       setImageLoading(false);
     }
@@ -368,7 +375,7 @@ export default function GeoSearch({ onClose, onViewOnMap }: GeoSearchProps) {
         {/* ── Header ── */}
         <div className="shrink-0 flex items-center justify-between px-6 py-4 border-b border-green-900/30 bg-gray-950/90">
           <div className="flex items-center gap-3">
-            <span className="text-green-400 text-xl">🔎</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block shrink-0" />
             <div>
               <h2 className="text-green-300 font-mono font-bold text-sm tracking-widest uppercase">
                 GeoSearch
@@ -387,9 +394,9 @@ export default function GeoSearch({ onClose, onViewOnMap }: GeoSearchProps) {
 
         {/* ── Mode tabs ── */}
         <div className="shrink-0 flex gap-1 sm:gap-2 px-3 sm:px-6 pt-3 sm:pt-4 pb-2 sm:pb-3 border-b border-green-900/20">
-          <ModeTab mode="name"   active={mode} onClick={() => setMode("name")}   icon="🔤" label="Nume" />
-          <ModeTab mode="coords" active={mode} onClick={() => setMode("coords")} icon="📡" label="Coordonate GPS" />
-          <ModeTab mode="image"  active={mode} onClick={() => setMode("image")}  icon="📷" label="Imagine" />
+          <ModeTab mode="name"   active={mode} onClick={() => setMode("name")}   icon="" label="Nume" />
+          <ModeTab mode="coords" active={mode} onClick={() => setMode("coords")} icon="" label="Coordonate GPS" />
+          <ModeTab mode="image"  active={mode} onClick={() => setMode("image")}  icon="" label="Imagine" />
         </div>
 
         {/* ── Body ── */}
