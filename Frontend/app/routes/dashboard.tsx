@@ -5,17 +5,25 @@ import ClientDashboard from "~/routes/client-dashboard";
 import AdminDashboard from "~/routes/admin-dashboard";
 
 export default function Dashboard() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!isAuthenticated) navigate("/auth");
-  }, [isAuthenticated, navigate]);
+    if (!loading && !isAuthenticated) navigate("/auth");
+  }, [loading, isAuthenticated, navigate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <div className="text-green-400 font-mono text-sm animate-pulse">Se incarca...</div>
+      </div>
+    );
+  }
 
   if (!user) return null;
 
   if (user.role === "CLIENT" || user.role === "GUEST") return <ClientDashboard />;
-  if (user.role === "ADMIN")  return <AdminDashboard />;
+  if (user.role === "ADMIN") return <AdminDashboard />;
 
   return null;
 }

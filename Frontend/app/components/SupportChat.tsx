@@ -1,8 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supportApi, type SupportMessage, type SupportSessionSummary } from "~/lib/api";
 import { SupportSocket, type SessionEvent } from "~/lib/supportSocket";
+import { useAuth } from "~/hooks/useAuth";
 
 export default function SupportChat() {
+  const { user } = useAuth();
+  const username = user?.username ?? "";
+
   const [session, setSession] = useState<SupportSessionSummary | null>(null);
   const [messages, setMessages] = useState<SupportMessage[]>([]);
   const [input, setInput] = useState("");
@@ -11,11 +15,6 @@ export default function SupportChat() {
 
   const listRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<SupportSocket | null>(null);
-
-  const username = useMemo(() => {
-    if (typeof window === "undefined") return "";
-    return localStorage.getItem("username") ?? "";
-  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -51,8 +50,19 @@ export default function SupportChat() {
           setMessages(history);
           socket.subscribeToSession(existing.id, handleSessionMessage);
         }
-      } catch (err) {
-        if (active) setError("Nu am putut conecta WebSocket-ul.");
+      } catch (err: unknown) {
+        if (!active) return;
+        const status =
+          err && typeof err === "object" && "response" in err
+            ? (err as { response?: { status?: number } }).response?.status
+            : undefined;
+        if (status === 401) {
+          setError("Sesiunea a expirat. Reconecteaza-te.");
+        } else {
+          setError("Nu am putut conecta la suport. Verifica conexiunea sau autentificarea.");
+        }
+        // eslint-disable-next-line no-console
+        console.error("Support chat connect failed:", err);
       } finally {
         if (active) setConnecting(false);
       }

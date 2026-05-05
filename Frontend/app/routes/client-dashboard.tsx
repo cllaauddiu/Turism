@@ -175,7 +175,7 @@ function StatPill({ label, value, unit }: { label: string; value: string; unit: 
 
 // ── Main component ─────────────────────────────────────────────────────────
 export default function ClientDashboard() {
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, logout, isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
   const [time, setTime] = useState(new Date());
   const [pulse, setPulse] = useState(false);
@@ -188,8 +188,8 @@ export default function ClientDashboard() {
   const [mapFlyTo, setMapFlyTo] = useState<{ lat: number; lon: number; name: string } | null>(null);
 
   useEffect(() => {
-    if (!isAuthenticated) navigate("/auth");
-  }, [isAuthenticated, navigate]);
+    if (!loading && !isAuthenticated) navigate("/auth");
+  }, [loading, isAuthenticated, navigate]);
 
   useEffect(() => {
     const t = setInterval(() => setTime(new Date()), 1000);

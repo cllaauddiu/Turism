@@ -171,6 +171,11 @@ export default function HolidayPlanner({ onClose }: HolidayPlannerProps) {
   };
 
   const handleToggleFavorite = (rec: HolidayRecommendationOption) => {
+    if (user?.role === "GUEST") {
+      setToastMsg("Creează un cont pentru a salva favorite!");
+      setTimeout(() => setToastMsg(null), 2500);
+      return;
+    }
     if (isFavorite(rec)) {
       removeFavoriteByCity(rec.destinationCity);
     } else {

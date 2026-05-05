@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import "leaflet/dist/leaflet.css";
 import { fogApi, type FogZone, type FogRiddle, type FogProgress, type FogUnlockResult } from "~/lib/api";
+import { useAuth } from "~/hooks/useAuth";
 
 // ── Difficulty badge ──────────────────────────────────────────────────────────
 function DiffBadge({ difficulty }: { difficulty: number }) {
@@ -308,6 +309,7 @@ interface FogOfWarProps {
 }
 
 export default function FogOfWar({ onClose }: FogOfWarProps) {
+  const { user } = useAuth();
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
   const rectanglesRef = useRef<Map<number, any>>(new Map());
@@ -535,6 +537,28 @@ export default function FogOfWar({ onClose }: FogOfWarProps) {
     setUnlockResult(null);
     setShowHint(false);
   };
+
+  if (user?.role === "GUEST") {
+    return (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        style={{ background: "rgba(0,0,0,0.85)" }}
+        onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      >
+        <div className="relative w-full max-w-md bg-gray-950 rounded-2xl border border-green-900/50 shadow-2xl flex flex-col items-center p-8 text-center gap-4">
+          <button onClick={onClose} className="absolute top-3 right-4 text-gray-500 hover:text-red-400 text-xl font-mono">✕</button>
+          <div className="w-16 h-16 rounded-full bg-green-900/20 border border-green-700/50 flex items-center justify-center text-3xl">🔒</div>
+          <h3 className="text-green-300 font-mono text-lg font-bold">Acces Restrictionat</h3>
+          <p className="text-gray-400 font-mono text-sm max-w-sm">
+            Jocul Fog of War este disponibil doar membrilor. Creează-ți un cont pentru a explora harta și debloca zone!
+          </p>
+          <a href="/auth" className="mt-2 px-6 py-2 bg-transparent border border-green-500 text-green-300 rounded font-mono text-sm tracking-wider uppercase hover:bg-green-900/30 transition-colors">
+            Creează cont
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 bg-gray-950 flex flex-col font-mono">

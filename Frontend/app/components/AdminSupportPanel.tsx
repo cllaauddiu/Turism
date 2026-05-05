@@ -1,8 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supportApi, type SupportMessage, type SupportSessionSummary } from "~/lib/api";
 import { SupportSocket, type SessionEvent } from "~/lib/supportSocket";
+import { useAuth } from "~/hooks/useAuth";
 
 export default function AdminSupportPanel() {
+  const { user } = useAuth();
+  const adminUsername = user?.username ?? "";
+
   const [sessions, setSessions] = useState<SupportSessionSummary[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<SupportMessage[]>([]);
@@ -12,11 +16,6 @@ export default function AdminSupportPanel() {
 
   const socketRef = useRef<SupportSocket | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
-
-  const adminUsername = useMemo(() => {
-    if (typeof window === "undefined") return "";
-    return localStorage.getItem("username") ?? "";
-  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
