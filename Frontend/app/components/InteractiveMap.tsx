@@ -33,10 +33,10 @@ function placeSearchMarker(L: any, map: any, target: { lat: number; lon: number;
     className: "",
     html: `<div style="
       width:14px;height:14px;
-      background:#4ade80;
+      background:#196b46;
       border:2px solid #86efac;
       border-radius:50%;
-      box-shadow:0 0 8px #4ade80, 0 0 18px #4ade8066;
+      box-shadow:0 0 8px #196b46, 0 0 18px #196b4666;
     "></div>`,
     iconSize: [14, 14],
     iconAnchor: [7, 7],
@@ -49,9 +49,9 @@ function placeSearchMarker(L: any, map: any, target: { lat: number; lon: number;
     .addTo(map)
     .bindPopup(
       `<div style="
-        background:#111827;
-        color:#4ade80;
-        border:1px solid #166534;
+        background:#fbf6ec;
+        color:#196b46;
+        border:1px solid #196b46;
         border-radius:8px;
         padding:10px 14px;
         font-family:monospace;
@@ -282,7 +282,7 @@ export default function InteractiveMap({ onClose, flyTo }: InteractiveMapProps) 
       });
 
       L.tileLayer(
-        "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+        "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
         {
           attribution:
             '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/">CARTO</a>',
@@ -314,10 +314,10 @@ export default function InteractiveMap({ onClose, flyTo }: InteractiveMapProps) 
         className: "",
         html: `<div style="
           width:10px;height:10px;
-          background:#4ade80;
-          border:2px solid #22c55e;
+          background:#196b46;
+          border:2px solid #196b46;
           border-radius:50%;
-          box-shadow:0 0 6px #4ade80, 0 0 12px #4ade8066;
+          box-shadow:0 0 6px #196b46, 0 0 12px #196b4666;
         "></div>`,
         iconSize: [10, 10],
         iconAnchor: [5, 5],
@@ -329,9 +329,9 @@ export default function InteractiveMap({ onClose, flyTo }: InteractiveMapProps) 
           .addTo(map)
           .bindPopup(
             `<div style="
-              background:#111827;
-              color:#4ade80;
-              border:1px solid #166534;
+              background:#fbf6ec;
+              color:#196b46;
+              border:1px solid #196b46;
               border-radius:8px;
               padding:10px 14px;
               font-family:monospace;
@@ -443,18 +443,18 @@ export default function InteractiveMap({ onClose, flyTo }: InteractiveMapProps) 
         .geo-popup .leaflet-popup-content { margin: 0 !important; }
         .geo-popup .leaflet-popup-tip-container { display: none !important; }
         .leaflet-control-attribution {
-          background: rgba(3,7,18,0.8) !important;
-          color: #374151 !important;
+          background: rgba(251,246,236,0.85) !important;
+          color: #244438 !important;
           font-size: 9px !important;
         }
-        .leaflet-control-attribution a { color: #4b5563 !important; }
+        .leaflet-control-attribution a { color: #3d6655 !important; }
         .leaflet-control-zoom a {
-          background: #111827 !important;
-          color: #4ade80 !important;
-          border-color: #166534 !important;
+          background: #fbf6ec !important;
+          color: #196b46 !important;
+          border-color: #196b46 !important;
         }
         .leaflet-control-zoom a:hover {
-          background: #1f2937 !important;
+          background: #ece5d6 !important;
           color: #86efac !important;
         }
         @keyframes slideInPanel {
@@ -467,36 +467,36 @@ export default function InteractiveMap({ onClose, flyTo }: InteractiveMapProps) 
       {/* Modal backdrop */}
       <div
         className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4"
-        style={{ background: "rgba(0,0,0,0.85)" }}
+        style={{ background: "rgba(40,30,10,0.45)" }}
         onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       >
         {/* Modal container */}
-        <div className="relative w-full h-full sm:max-w-6xl sm:h-[85vh] bg-gray-950 rounded-none sm:rounded-2xl border-0 sm:border border-green-900/50 overflow-hidden shadow-2xl shadow-green-950/50 flex flex-col">
+        <div className="relative w-full h-full sm:max-w-6xl sm:h-[85vh] bg-stone-100 rounded-none sm:rounded-2xl border-0 sm:border border-emerald-200/50 overflow-hidden shadow-2xl shadow-emerald-100/50 flex flex-col">
 
           {/* Modal header */}
-          <div className="flex items-center justify-between px-3 sm:px-5 py-2 sm:py-3 border-b border-green-900/40 bg-gray-950/90 backdrop-blur z-10 shrink-0">
+          <div className="flex items-center justify-between px-3 sm:px-5 py-2 sm:py-3 border-b border-emerald-200/40 bg-stone-100/90 backdrop-blur z-10 shrink-0">
             <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block shrink-0" />
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block shrink-0" />
               <div className="min-w-0">
-                <h2 className="text-green-300 font-mono font-bold text-xs sm:text-sm tracking-widest uppercase truncate">
+                <h2 className="text-emerald-800 font-mono font-bold text-xs sm:text-sm tracking-widest uppercase truncate">
                   Hartă Interactivă
                 </h2>
-                <p className="text-green-800 font-mono text-xs hidden sm:block">
+                <p className="text-stone-400 font-mono text-xs hidden sm:block">
                   Proiecție Mercator · WGS84 · Leaflet OSM
                 </p>
               </div>
             </div>
 
             <div className="hidden md:flex items-center gap-6 font-mono text-xs">
-              <span className="text-green-700">Click pe hartă pentru detalii locație</span>
-              <span className="text-green-600 border border-green-900/50 rounded px-2 py-1">
+              <span className="text-stone-500">Click pe hartă pentru detalii locație</span>
+              <span className="text-emerald-700 border border-emerald-200/50 rounded px-2 py-1">
                 🌍 15 orașe marcate
               </span>
             </div>
 
             <button
               onClick={onClose}
-              className="text-gray-500 hover:text-red-400 transition-colors text-xl leading-none font-mono ml-4"
+              className="text-stone-500 hover:text-red-700 transition-colors text-xl leading-none font-mono ml-4"
               title="Închide (Esc)"
             >
               ✕
@@ -514,22 +514,22 @@ export default function InteractiveMap({ onClose, flyTo }: InteractiveMapProps) 
               <div
                 key={`${locationInfo.lat}-${locationInfo.lng}`}
                 className="location-panel absolute inset-0 z-1000 overflow-y-auto"
-                style={{ background: "rgba(3,7,18,0.93)" }}
+                style={{ background: "rgba(251,246,236,0.95)" }}
               >
                 {/* Overlay header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-yellow-900/40 sticky top-0 z-10"
-                  style={{ background: "rgba(3,7,18,0.97)" }}>
+                <div className="flex items-center justify-between px-6 py-4 border-b border-amber-300/40 sticky top-0 z-10"
+                  style={{ background: "rgba(251,246,236,0.97)" }}>
                   <div className="flex items-center gap-3">
-                    <span className="text-yellow-400 text-lg">📍</span>
+                    <span className="text-amber-700 text-lg">📍</span>
                     <div>
                       {locationInfo.loading || !locationInfo.locationName ? (
-                        <div className="text-yellow-600 font-mono text-sm animate-pulse">Se identifică locația...</div>
+                        <div className="text-amber-700 font-mono text-sm animate-pulse">Se identifică locația...</div>
                       ) : (
                         <div className="text-yellow-200 font-mono font-bold text-base leading-snug">
                           {locationInfo.locationName}
                         </div>
                       )}
-                      <div className="text-gray-600 font-mono text-[11px] mt-0.5">
+                      <div className="text-stone-500 font-mono text-[11px] mt-0.5">
                         {latLabel} &nbsp;·&nbsp; {lngLabel}
                       </div>
                     </div>
@@ -542,7 +542,7 @@ export default function InteractiveMap({ onClose, flyTo }: InteractiveMapProps) 
                         clickMarkerRef.current = null;
                       }
                     }}
-                    className="text-gray-500 hover:text-red-400 transition-colors text-xl font-mono ml-6"
+                    className="text-stone-500 hover:text-red-700 transition-colors text-xl font-mono ml-6"
                     title="Înapoi la hartă"
                   >
                     ✕
@@ -553,46 +553,46 @@ export default function InteractiveMap({ onClose, flyTo }: InteractiveMapProps) 
                 <div className="px-6 py-6 font-mono grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 
                   {/* Coordinates card */}
-                  <div className="bg-gray-900/80 border border-yellow-900/30 rounded-xl p-4 flex flex-col gap-2">
-                    <div className="text-gray-500 text-[10px] uppercase tracking-widest mb-1">Coordonate</div>
+                  <div className="bg-stone-50/80 border border-amber-300/30 rounded-xl p-4 flex flex-col gap-2">
+                    <div className="text-stone-500 text-[10px] uppercase tracking-widest mb-1">Coordonate</div>
                     <div className="flex flex-col gap-1 text-sm">
-                      <div><span className="text-yellow-600">Lat: </span><span className="text-yellow-100">{latLabel}</span></div>
-                      <div><span className="text-yellow-600">Lon: </span><span className="text-yellow-100">{lngLabel}</span></div>
+                      <div><span className="text-amber-700">Lat: </span><span className="text-yellow-100">{latLabel}</span></div>
+                      <div><span className="text-amber-700">Lon: </span><span className="text-yellow-100">{lngLabel}</span></div>
                     </div>
                   </div>
 
                   {/* Local time card */}
-                  <div className="bg-gray-900/80 border border-yellow-900/30 rounded-xl p-4 flex flex-col gap-2">
-                    <div className="text-gray-500 text-[10px] uppercase tracking-widest mb-1">Ora locală</div>
+                  <div className="bg-stone-50/80 border border-amber-300/30 rounded-xl p-4 flex flex-col gap-2">
+                    <div className="text-stone-500 text-[10px] uppercase tracking-widest mb-1">Ora locală</div>
                     {locationInfo.loading || !locationInfo.timeStr ? (
-                      <div className="text-gray-500 animate-pulse text-sm">⏳ Se încarcă...</div>
+                      <div className="text-stone-500 animate-pulse text-sm">⏳ Se încarcă...</div>
                     ) : (
                       <>
                         <div className="text-yellow-200 text-3xl font-bold tracking-wider">{locationInfo.timeStr}</div>
-                        <div className="text-gray-400 text-xs">{locationInfo.dateStr}</div>
-                        <div className="text-gray-600 text-[10px] mt-1">🌐 {locationInfo.tzName}</div>
+                        <div className="text-stone-600 text-xs">{locationInfo.dateStr}</div>
+                        <div className="text-stone-500 text-[10px] mt-1">🌐 {locationInfo.tzName}</div>
                       </>
                     )}
                   </div>
 
                   {/* Weather card – temperature + conditions */}
-                  <div className="bg-gray-900/80 border border-blue-900/30 rounded-xl p-4 flex flex-col gap-2">
-                    <div className="text-gray-500 text-[10px] uppercase tracking-widest mb-1">🌤 Vreme actuală</div>
+                  <div className="bg-stone-50/80 border border-blue-300/30 rounded-xl p-4 flex flex-col gap-2">
+                    <div className="text-stone-500 text-[10px] uppercase tracking-widest mb-1">🌤 Vreme actuală</div>
                     {locationInfo.weatherLoading ? (
-                      <div className="text-gray-500 animate-pulse text-sm">⏳ Se încarcă...</div>
+                      <div className="text-stone-500 animate-pulse text-sm">⏳ Se încarcă...</div>
                     ) : locationInfo.weatherError ? (
-                      <div className="text-red-500 text-xs">{locationInfo.weatherError}</div>
+                      <div className="text-red-700 text-xs">{locationInfo.weatherError}</div>
                     ) : locationInfo.weather ? (
                       <>
                         <div className="flex items-end gap-2">
                           <span className="text-blue-200 text-4xl font-bold">{Math.round(locationInfo.weather.temperature)}°C</span>
-                          <span className="text-gray-400 text-sm pb-1">resimțit {Math.round(locationInfo.weather.feelsLike)}°C</span>
+                          <span className="text-stone-600 text-sm pb-1">resimțit {Math.round(locationInfo.weather.feelsLike)}°C</span>
                         </div>
-                        <div className="text-blue-300 text-sm font-semibold">{locationInfo.weather.conditions}</div>
+                        <div className="text-blue-800 text-sm font-semibold">{locationInfo.weather.conditions}</div>
                         {locationInfo.weather.description && (
-                          <div className="text-gray-500 text-[11px] leading-snug">{locationInfo.weather.description}</div>
+                          <div className="text-stone-500 text-[11px] leading-snug">{locationInfo.weather.description}</div>
                         )}
-                        <div className="flex gap-3 text-xs text-gray-400 mt-1">
+                        <div className="flex gap-3 text-xs text-stone-600 mt-1">
                           <span>↑ {Math.round(locationInfo.weather.tempMax)}°</span>
                           <span>↓ {Math.round(locationInfo.weather.tempMin)}°</span>
                         </div>
@@ -601,12 +601,12 @@ export default function InteractiveMap({ onClose, flyTo }: InteractiveMapProps) 
                   </div>
 
                   {/* Turism card – top events */}
-                  <div className="bg-gray-900/80 border border-fuchsia-900/30 rounded-xl p-4 flex flex-col gap-2">
-                    <div className="text-gray-500 text-[10px] uppercase tracking-widest mb-1">🎟 Evenimente Turism</div>
+                  <div className="bg-stone-50/80 border border-fuchsia-900/30 rounded-xl p-4 flex flex-col gap-2">
+                    <div className="text-stone-500 text-[10px] uppercase tracking-widest mb-1">🎟 Evenimente Turism</div>
                     {locationInfo.eventsLoading ? (
-                      <div className="text-gray-500 animate-pulse text-sm">⏳ Se încarcă...</div>
+                      <div className="text-stone-500 animate-pulse text-sm">⏳ Se încarcă...</div>
                     ) : locationInfo.eventsError ? (
-                      <div className="text-red-500 text-xs">{locationInfo.eventsError}</div>
+                      <div className="text-red-700 text-xs">{locationInfo.eventsError}</div>
                     ) : locationInfo.events.length > 0 ? (
                       <>
                         <div className="text-fuchsia-200 text-sm font-semibold">{locationInfo.events.length} evenimente găsite</div>
@@ -615,52 +615,52 @@ export default function InteractiveMap({ onClose, flyTo }: InteractiveMapProps) 
                         )}
                         <div className="space-y-2">
                           {locationInfo.events.slice(0, 3).map((event) => (
-                            <div key={event.id} className="rounded-lg border border-fuchsia-900/40 bg-gray-950/70 p-2">
+                            <div key={event.id} className="rounded-lg border border-fuchsia-900/40 bg-stone-100/70 p-2">
                               <div className="text-fuchsia-100 text-xs font-semibold leading-snug">{event.name}</div>
-                              <div className="text-gray-400 text-[11px] mt-1">
+                              <div className="text-stone-600 text-[11px] mt-1">
                                 {event.date ?? "Data necunoscută"}
                                 {event.time ? ` · ${event.time.slice(0, 5)}` : ""}
                               </div>
-                              <div className="text-gray-500 text-[11px] mt-0.5">{event.venue ?? "Locație indisponibilă"}</div>
+                              <div className="text-stone-500 text-[11px] mt-0.5">{event.venue ?? "Locație indisponibilă"}</div>
                             </div>
                           ))}
                         </div>
                       </>
                     ) : (
-                      <div className="text-gray-500 text-xs">{locationInfo.eventsSearchNote ?? "Nu s-au găsit evenimente pentru această zonă."}</div>
+                      <div className="text-stone-500 text-xs">{locationInfo.eventsSearchNote ?? "Nu s-au găsit evenimente pentru această zonă."}</div>
                     )}
                   </div>
 
                   {/* Weather details card */}
                   {locationInfo.weather && !locationInfo.weatherLoading && (
-                    <div className="bg-gray-900/80 border border-blue-900/30 rounded-xl p-4 flex flex-col gap-2">
-                      <div className="text-gray-500 text-[10px] uppercase tracking-widest mb-1">📊 Detalii meteo</div>
+                    <div className="bg-stone-50/80 border border-blue-300/30 rounded-xl p-4 flex flex-col gap-2">
+                      <div className="text-stone-500 text-[10px] uppercase tracking-widest mb-1">📊 Detalii meteo</div>
                       <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                        <div><span className="text-gray-500">💧 Umiditate: </span><span className="text-blue-200">{locationInfo.weather.humidity}%</span></div>
-                        <div><span className="text-gray-500">🌬 Vânt: </span><span className="text-blue-200">{Math.round(locationInfo.weather.windSpeed)} km/h {locationInfo.weather.windDirectionLabel}</span></div>
-                        <div><span className="text-gray-500">🌧 Precipitații: </span><span className="text-blue-200">{locationInfo.weather.precipProbability}%</span></div>
-                        <div><span className="text-gray-500">☁️ Nori: </span><span className="text-blue-200">{locationInfo.weather.cloudCover}%</span></div>
-                        <div><span className="text-gray-500">👁 Vizibilitate: </span><span className="text-blue-200">{locationInfo.weather.visibility} km</span></div>
-                        <div><span className="text-gray-500">🌡 Presiune: </span><span className="text-blue-200">{Math.round(locationInfo.weather.pressure)} hPa</span></div>
-                        <div><span className="text-gray-500">☀️ UV: </span><span className="text-blue-200">{locationInfo.weather.uvIndex}</span></div>
-                        <div><span className="text-gray-500">💦 Punct de rouă: </span><span className="text-blue-200">{Math.round(locationInfo.weather.dewPoint)}°C</span></div>
-                        <div><span className="text-gray-500">🌅 Răsărit: </span><span className="text-blue-200">{locationInfo.weather.sunrise?.slice(0, 5)}</span></div>
-                        <div><span className="text-gray-500">🌇 Apus: </span><span className="text-blue-200">{locationInfo.weather.sunset?.slice(0, 5)}</span></div>
+                        <div><span className="text-stone-500">💧 Umiditate: </span><span className="text-blue-200">{locationInfo.weather.humidity}%</span></div>
+                        <div><span className="text-stone-500">🌬 Vânt: </span><span className="text-blue-200">{Math.round(locationInfo.weather.windSpeed)} km/h {locationInfo.weather.windDirectionLabel}</span></div>
+                        <div><span className="text-stone-500">🌧 Precipitații: </span><span className="text-blue-200">{locationInfo.weather.precipProbability}%</span></div>
+                        <div><span className="text-stone-500">☁️ Nori: </span><span className="text-blue-200">{locationInfo.weather.cloudCover}%</span></div>
+                        <div><span className="text-stone-500">👁 Vizibilitate: </span><span className="text-blue-200">{locationInfo.weather.visibility} km</span></div>
+                        <div><span className="text-stone-500">🌡 Presiune: </span><span className="text-blue-200">{Math.round(locationInfo.weather.pressure)} hPa</span></div>
+                        <div><span className="text-stone-500">☀️ UV: </span><span className="text-blue-200">{locationInfo.weather.uvIndex}</span></div>
+                        <div><span className="text-stone-500">💦 Punct de rouă: </span><span className="text-blue-200">{Math.round(locationInfo.weather.dewPoint)}°C</span></div>
+                        <div><span className="text-stone-500">🌅 Răsărit: </span><span className="text-blue-200">{locationInfo.weather.sunrise?.slice(0, 5)}</span></div>
+                        <div><span className="text-stone-500">🌇 Apus: </span><span className="text-blue-200">{locationInfo.weather.sunset?.slice(0, 5)}</span></div>
                       </div>
                     </div>
                   )}
 
                   {/* Turism details card */}
                   {locationInfo.events.length > 0 && !locationInfo.eventsLoading && (
-                    <div className="bg-gray-900/80 border border-fuchsia-900/30 rounded-xl p-4 flex flex-col gap-2 sm:col-span-2 lg:col-span-3">
-                      <div className="text-gray-500 text-[10px] uppercase tracking-widest mb-1">📍 Recomandări Ticketmaster</div>
+                    <div className="bg-stone-50/80 border border-fuchsia-900/30 rounded-xl p-4 flex flex-col gap-2 sm:col-span-2 lg:col-span-3">
+                      <div className="text-stone-500 text-[10px] uppercase tracking-widest mb-1">📍 Recomandări Ticketmaster</div>
                       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 text-xs">
                         {locationInfo.events.slice(0, 6).map((event) => (
-                          <div key={`details-${event.id}`} className="rounded-lg border border-fuchsia-900/40 bg-gray-950/60 p-3">
+                          <div key={`details-${event.id}`} className="rounded-lg border border-fuchsia-900/40 bg-stone-100/60 p-3">
                             <div className="text-fuchsia-100 font-semibold text-sm leading-snug">{event.name}</div>
-                            <div className="text-gray-400 mt-1">{event.city ?? "Oraș necunoscut"}</div>
-                            <div className="text-gray-500">{event.venue ?? "Locație indisponibilă"}</div>
-                            <div className="text-gray-500 mt-1">
+                            <div className="text-stone-600 mt-1">{event.city ?? "Oraș necunoscut"}</div>
+                            <div className="text-stone-500">{event.venue ?? "Locație indisponibilă"}</div>
+                            <div className="text-stone-500 mt-1">
                               {event.date ?? "Data necunoscută"}
                               {event.time ? ` · ${event.time.slice(0, 5)}` : ""}
                             </div>
@@ -681,21 +681,21 @@ export default function InteractiveMap({ onClose, flyTo }: InteractiveMapProps) 
                   )}
 
                   {/* Google Places card */}
-                  <div className="bg-gray-900/80 border border-emerald-900/30 rounded-xl p-4 flex flex-col gap-2">
-                    <div className="text-gray-500 text-[10px] uppercase tracking-widest mb-1">🧭 Google Places</div>
+                  <div className="bg-stone-50/80 border border-emerald-200/30 rounded-xl p-4 flex flex-col gap-2">
+                    <div className="text-stone-500 text-[10px] uppercase tracking-widest mb-1">🧭 Google Places</div>
                     {locationInfo.placesLoading ? (
-                      <div className="text-gray-500 animate-pulse text-sm">⏳ Se încarcă...</div>
+                      <div className="text-stone-500 animate-pulse text-sm">⏳ Se încarcă...</div>
                     ) : locationInfo.placesError ? (
-                      <div className="text-red-500 text-xs">{locationInfo.placesError}</div>
+                      <div className="text-red-700 text-xs">{locationInfo.placesError}</div>
                     ) : locationInfo.places.length > 0 ? (
                       <>
-                        <div className="text-emerald-200 text-sm font-semibold">{locationInfo.places.length} locuri găsite</div>
+                        <div className="text-emerald-800 text-sm font-semibold">{locationInfo.places.length} locuri găsite</div>
                         <div className="space-y-2">
                           {locationInfo.places.slice(0, 3).map((place) => (
-                            <div key={place.id} className="rounded-lg border border-emerald-900/40 bg-gray-950/70 p-2">
+                            <div key={place.id} className="rounded-lg border border-emerald-200/40 bg-stone-100/70 p-2">
                               <div className="text-emerald-100 text-xs font-semibold leading-snug">{place.name}</div>
-                              <div className="text-gray-500 text-[11px] mt-0.5">{place.address ?? "Adresă indisponibilă"}</div>
-                              <div className="text-gray-400 text-[11px] mt-1">
+                              <div className="text-stone-500 text-[11px] mt-0.5">{place.address ?? "Adresă indisponibilă"}</div>
+                              <div className="text-stone-600 text-[11px] mt-1">
                                 ⭐ {place.rating ?? "-"}
                                 {place.userRatingsTotal ? ` (${place.userRatingsTotal})` : ""}
                               </div>
@@ -704,26 +704,26 @@ export default function InteractiveMap({ onClose, flyTo }: InteractiveMapProps) 
                         </div>
                       </>
                     ) : (
-                      <div className="text-gray-500 text-xs">Nu s-au găsit locuri turistice pentru această zonă.</div>
+                      <div className="text-stone-500 text-xs">Nu s-au găsit locuri turistice pentru această zonă.</div>
                     )}
                   </div>
 
                   {/* Google Places details card */}
                   {locationInfo.places.length > 0 && !locationInfo.placesLoading && (
-                    <div className="bg-gray-900/80 border border-emerald-900/30 rounded-xl p-4 flex flex-col gap-2 sm:col-span-2 lg:col-span-3">
-                      <div className="text-gray-500 text-[10px] uppercase tracking-widest mb-1">🗺 Recomandări Google Places</div>
+                    <div className="bg-stone-50/80 border border-emerald-200/30 rounded-xl p-4 flex flex-col gap-2 sm:col-span-2 lg:col-span-3">
+                      <div className="text-stone-500 text-[10px] uppercase tracking-widest mb-1">🗺 Recomandări Google Places</div>
                       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 text-xs">
                         {locationInfo.places.slice(0, 6).map((place) => (
-                          <div key={`place-${place.id}`} className="rounded-lg border border-emerald-900/40 bg-gray-950/60 p-3">
+                          <div key={`place-${place.id}`} className="rounded-lg border border-emerald-200/40 bg-stone-100/60 p-3">
                             <div className="text-emerald-100 font-semibold text-sm leading-snug">{place.name}</div>
-                            <div className="text-gray-500 mt-1">{place.address ?? "Adresă indisponibilă"}</div>
-                            <div className="text-gray-400 mt-1">⭐ {place.rating ?? "-"}</div>
+                            <div className="text-stone-500 mt-1">{place.address ?? "Adresă indisponibilă"}</div>
+                            <div className="text-stone-600 mt-1">⭐ {place.rating ?? "-"}</div>
                             {place.googleMapsUrl && (
                               <a
                                 href={place.googleMapsUrl}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="inline-block mt-2 text-emerald-300 hover:text-emerald-200 underline"
+                                className="inline-block mt-2 text-emerald-800 hover:text-emerald-800 underline"
                               >
                                 Vezi pe Google Maps
                               </a>
@@ -740,7 +740,7 @@ export default function InteractiveMap({ onClose, flyTo }: InteractiveMapProps) 
           </div>
 
           {/* Footer bar */}
-          <div className="shrink-0 px-5 py-2 border-t border-green-900/30 bg-gray-950/80 flex items-center justify-between font-mono text-xs text-green-900">
+          <div className="shrink-0 px-5 py-2 border-t border-emerald-200/30 bg-stone-100/80 flex items-center justify-between font-mono text-xs text-stone-400">
             <span>© OpenStreetMap contributors · © CARTO</span>
             <span>Apasă ESC sau click în afara hărții pentru a închide</span>
           </div>

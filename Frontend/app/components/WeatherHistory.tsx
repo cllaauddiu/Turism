@@ -109,21 +109,21 @@ export default function WeatherHistory({ onClose }: Props) {
   }, [history]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-      <div className="bg-gray-950 border border-green-900/50 rounded-2xl shadow-2xl shadow-green-900/30 w-full max-w-7xl max-h-[95vh] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-200/80 backdrop-blur-sm p-4">
+      <div className="bg-stone-100 border border-emerald-200/50 rounded-2xl shadow-2xl shadow-emerald-200/30 w-full max-w-7xl max-h-[95vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-green-900/40 bg-gray-900/60">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-emerald-200/40 bg-stone-50/60">
           <div>
-            <h2 className="text-green-400 font-bold tracking-widest text-sm uppercase font-mono">
+            <h2 className="text-emerald-700 font-bold tracking-widest text-sm uppercase font-mono">
               Istoric Vreme — Comparator
             </h2>
-            <p className="text-green-700 font-mono text-xs mt-0.5">
+            <p className="text-stone-500 font-mono text-xs mt-0.5">
               Date colectate automat de la Open-Meteo · TimescaleDB
             </p>
           </div>
           <button
             onClick={onClose}
-            className="text-xs px-3 py-1.5 rounded border border-red-900/60 text-red-400 hover:bg-red-900/30 hover:border-red-600 transition-all font-mono uppercase tracking-wider"
+            className="text-xs px-3 py-1.5 rounded border border-red-300/60 text-red-700 hover:bg-red-100/30 hover:border-red-600 transition-all font-mono uppercase tracking-wider"
           >
             Inchide
           </button>
@@ -132,9 +132,9 @@ export default function WeatherHistory({ onClose }: Props) {
         {/* Body */}
         <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
           {/* Sidebar — orase + interval */}
-          <aside className="lg:w-72 lg:border-r border-green-900/40 p-4 overflow-y-auto bg-gray-900/30">
+          <aside className="lg:w-72 lg:border-r border-emerald-200/40 p-4 overflow-y-auto bg-stone-50/30">
             <div className="mb-5">
-              <p className="text-green-500 font-mono text-xs tracking-widest uppercase mb-2">
+              <p className="text-emerald-600 font-mono text-xs tracking-widest uppercase mb-2">
                 Interval
               </p>
               <div className="grid grid-cols-2 gap-2">
@@ -144,8 +144,8 @@ export default function WeatherHistory({ onClose }: Props) {
                     onClick={() => setDays(r.value)}
                     className={`px-3 py-2 rounded-lg font-mono text-xs transition-all ${
                       days === r.value
-                        ? "bg-green-500/20 border border-green-500 text-green-300"
-                        : "bg-gray-900/60 border border-gray-800 text-gray-400 hover:border-green-700/60"
+                        ? "bg-emerald-500/20 border border-emerald-600 text-emerald-800"
+                        : "bg-stone-50/60 border border-stone-300 text-stone-600 hover:border-emerald-400/60"
                     }`}
                   >
                     {r.label}
@@ -155,11 +155,11 @@ export default function WeatherHistory({ onClose }: Props) {
             </div>
 
             <div>
-              <p className="text-green-500 font-mono text-xs tracking-widest uppercase mb-2">
+              <p className="text-emerald-600 font-mono text-xs tracking-widest uppercase mb-2">
                 Orase ({selected.length}/{MAX_SELECTED})
               </p>
               {loadingCities ? (
-                <p className="text-gray-500 font-mono text-xs animate-pulse">
+                <p className="text-stone-500 font-mono text-xs animate-pulse">
                   Se incarca...
                 </p>
               ) : (
@@ -176,8 +176,8 @@ export default function WeatherHistory({ onClose }: Props) {
                         disabled={disabled}
                         className={`w-full flex items-center justify-between px-3 py-2 rounded-lg font-mono text-xs transition-all ${
                           isSelected
-                            ? "bg-gray-900/80 border border-green-700/60"
-                            : "bg-gray-900/30 border border-gray-800/60 hover:border-green-900/60"
+                            ? "bg-stone-50/80 border border-emerald-400/60"
+                            : "bg-stone-50/30 border border-stone-300/60 hover:border-emerald-200/60"
                         } ${disabled ? "opacity-30 cursor-not-allowed" : ""}`}
                       >
                         <div className="flex items-center gap-2 min-w-0">
@@ -186,18 +186,18 @@ export default function WeatherHistory({ onClose }: Props) {
                             style={{
                               backgroundColor: isSelected
                                 ? COLORS[colorIdx % COLORS.length]
-                                : "#374151",
+                                : "#244438",
                             }}
                           />
                           <div className="text-left min-w-0">
                             <p
                               className={`truncate ${
-                                isSelected ? "text-green-300" : "text-gray-400"
+                                isSelected ? "text-emerald-800" : "text-stone-600"
                               }`}
                             >
                               {city.name}
                             </p>
-                            <p className="text-gray-600 text-[10px] truncate">
+                            <p className="text-stone-500 text-[10px] truncate">
                               {city.country}
                             </p>
                           </div>
@@ -213,29 +213,29 @@ export default function WeatherHistory({ onClose }: Props) {
           {/* Charts */}
           <main className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
             {error && (
-              <div className="bg-red-900/30 border border-red-700/60 rounded-lg p-3 text-red-300 font-mono text-sm">
+              <div className="bg-red-100/30 border border-red-500/60 rounded-lg p-3 text-red-700 font-mono text-sm">
                 {error}
               </div>
             )}
 
             {selected.length === 0 ? (
               <div className="flex items-center justify-center h-full min-h-[300px]">
-                <p className="text-gray-500 font-mono text-sm">
+                <p className="text-stone-500 font-mono text-sm">
                   Selecteaza cel putin un oras pentru a afisa graficele.
                 </p>
               </div>
             ) : loading ? (
               <div className="flex items-center justify-center h-full min-h-[300px]">
-                <p className="text-green-400 font-mono text-sm animate-pulse">
+                <p className="text-emerald-700 font-mono text-sm animate-pulse">
                   Se incarca datele...
                 </p>
               </div>
             ) : history.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full min-h-[300px] gap-2">
-                <p className="text-gray-400 font-mono text-sm">
+                <p className="text-stone-600 font-mono text-sm">
                   Nu exista date in baza pentru orasele si intervalul ales.
                 </p>
-                <p className="text-gray-600 font-mono text-xs">
+                <p className="text-stone-500 font-mono text-xs">
                   Datele se acumuleaza la fiecare pornire a containerului si la
                   miezul noptii.
                 </p>
@@ -244,9 +244,9 @@ export default function WeatherHistory({ onClose }: Props) {
               chartData.map(({ metric, data }) => (
                 <section
                   key={metric.key as string}
-                  className="bg-gray-900/60 border border-green-900/40 rounded-xl p-4"
+                  className="bg-stone-50/60 border border-emerald-200/40 rounded-xl p-4"
                 >
-                  <h3 className="text-green-400 font-mono text-xs tracking-widest uppercase mb-3">
+                  <h3 className="text-emerald-700 font-mono text-xs tracking-widest uppercase mb-3">
                     {metric.label} ({metric.unit})
                   </h3>
                   <div style={{ width: "100%", height: 260 }}>
@@ -254,27 +254,27 @@ export default function WeatherHistory({ onClose }: Props) {
                       <LineChart data={data}>
                         <CartesianGrid
                           strokeDasharray="3 3"
-                          stroke="#1f2937"
+                          stroke="#ece5d6"
                         />
                         <XAxis
                           dataKey="time"
-                          stroke="#4b5563"
+                          stroke="#3d6655"
                           tick={{ fontSize: 11, fontFamily: "monospace" }}
                         />
                         <YAxis
-                          stroke="#4b5563"
+                          stroke="#3d6655"
                           tick={{ fontSize: 11, fontFamily: "monospace" }}
                           unit={metric.unit}
                         />
                         <Tooltip
                           contentStyle={{
-                            backgroundColor: "#030712",
-                            border: "1px solid #14532d",
+                            backgroundColor: "#f4efe6",
+                            border: "1px solid #196b46",
                             borderRadius: "8px",
                             fontFamily: "monospace",
                             fontSize: "12px",
                           }}
-                          labelStyle={{ color: "#4ade80" }}
+                          labelStyle={{ color: "#196b46" }}
                         />
                         <Legend
                           wrapperStyle={{

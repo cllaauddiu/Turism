@@ -112,46 +112,46 @@ export default function AdminSupportPanel() {
   const isClosed = activeSession?.status === "CLOSED";
 
   if (connecting) {
-    return <div className="text-center text-gray-500 py-8 font-mono text-sm">Se conecteaza la WebSocket...</div>;
+    return <div className="text-center text-stone-500 py-8 font-mono text-sm">Se conecteaza la WebSocket...</div>;
   }
 
   if (error) {
-    return <div className="text-center text-red-400 py-8 font-mono text-sm">{error}</div>;
+    return <div className="text-center text-red-700 py-8 font-mono text-sm">{error}</div>;
   }
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden grid grid-cols-1 md:grid-cols-[280px_1fr] h-[600px]">
+    <div className="bg-[#fbf6ec]/80 border border-emerald-300/50 rounded-sm-sm overflow-hidden grid grid-cols-1 md:grid-cols-[280px_1fr] h-full font-mono">
       {/* ── Sessions list ── */}
-      <aside className="border-r border-gray-800 overflow-y-auto bg-gray-950/50">
-        <div className="px-4 py-3 border-b border-gray-800 sticky top-0 bg-gray-950/95 backdrop-blur">
-          <h3 className="text-xs uppercase tracking-widest text-gray-500">Sesiuni Suport</h3>
-          <p className="text-[10px] text-gray-600 mt-0.5">{sessions.length} total · live</p>
+      <aside className="border-r border-emerald-300/50 overflow-y-auto bg-[#f4efe6]/60">
+        <div className="px-4 py-3 border-b border-emerald-300/50 sticky top-0 bg-[#f4efe6]/95 backdrop-blur">
+          <h3 className="text-[10px] uppercase tracking-[0.3em] text-violet-700 font-semibold">Sesiuni Suport</h3>
+          <p className="text-[10px] text-stone-500 mt-0.5">{sessions.length} total · live</p>
         </div>
         {sessions.length === 0 ? (
-          <div className="px-4 py-8 text-center text-gray-600 text-sm">Niciun client nu a deschis o conversatie.</div>
+          <div className="px-4 py-8 text-center text-stone-500 text-sm">Niciun client nu a deschis o conversatie.</div>
         ) : (
           <ul>
             {sessions.map((s) => (
               <li key={s.id}>
                 <button
                   onClick={() => openSession(s.id)}
-                  className={`w-full text-left px-4 py-3 border-b border-gray-800 transition-colors ${
-                    activeSessionId === s.id ? "bg-violet-900/30" : "hover:bg-gray-800/50"
+                  className={`w-full text-left px-4 py-3 border-b border-emerald-300/30 transition-colors ${
+                    activeSessionId === s.id ? "bg-violet-100 border-l-2 border-l-violet-600" : "hover:bg-violet-50/50"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-sm font-semibold text-white truncate">{s.clientUsername}</span>
+                    <span className="text-sm font-semibold text-stone-900 truncate">{s.clientUsername}</span>
                     {s.status === "CLOSED" && (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-gray-800 text-gray-500 uppercase">inchis</span>
+                      <span className="text-[9px] px-1.5 py-0.5 rounded-sm bg-stone-200 text-stone-500 uppercase">inchis</span>
                     )}
                     {s.status === "OPEN" && (
-                      <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                      <span className="w-2 h-2 rounded-sm-full bg-emerald-500" />
                     )}
                   </div>
-                  <div className="text-[11px] text-gray-500 truncate mt-1">
+                  <div className="text-[11px] text-stone-500 truncate mt-1">
                     {s.lastMessagePreview || "(niciun mesaj inca)"}
                   </div>
-                  <div className="text-[10px] text-gray-600 mt-1">
+                  <div className="text-[10px] text-stone-500 mt-1">
                     {s.messageCount} mesaje · {new Date(s.lastMessageAt).toLocaleTimeString()}
                   </div>
                 </button>
@@ -164,29 +164,29 @@ export default function AdminSupportPanel() {
       {/* ── Chat panel ── */}
       <section className="flex flex-col">
         {!activeSession ? (
-          <div className="flex-1 flex items-center justify-center text-gray-600 font-mono text-sm">
+          <div className="flex-1 flex items-center justify-center text-stone-500 font-mono text-sm">
             Selecteaza o sesiune din stanga.
           </div>
         ) : (
           <>
-            <header className="px-5 py-3 border-b border-gray-800 bg-gray-950/80 flex items-center justify-between">
+            <header className="px-5 py-3 border-b border-emerald-300/50 bg-[#f4efe6]/70 flex items-center justify-between">
               <div>
-                <div className="text-sm font-semibold text-white">{activeSession.clientUsername}</div>
-                <div className="text-[10px] text-gray-500 font-mono">#{activeSession.id.slice(0, 8)} · {activeSession.status}</div>
+                <div className="text-sm font-semibold text-stone-900">{activeSession.clientUsername}</div>
+                <div className="text-[10px] text-stone-500 font-mono">#{activeSession.id.slice(0, 8)} · {activeSession.status}</div>
               </div>
               {!isClosed && (
                 <button
                   onClick={closeSession}
-                  className="text-xs px-3 py-1.5 rounded border border-red-900/60 text-red-400 hover:bg-red-900/30"
+                  className="text-xs px-3 py-1.5 rounded-sm border border-red-300/60 text-red-700 hover:bg-red-100/30"
                 >
                   Inchide sesiunea
                 </button>
               )}
             </header>
 
-            <div ref={listRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-gray-950/40">
+            <div ref={listRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-[#fbf6ec]/40">
               {messages.length === 0 && (
-                <div className="text-center text-gray-600 text-xs font-mono py-8">
+                <div className="text-center text-stone-500 text-xs font-mono py-8">
                   Niciun mesaj inca. Astepti clientul.
                 </div>
               )}
@@ -195,13 +195,13 @@ export default function AdminSupportPanel() {
                 return (
                   <div
                     key={m.id}
-                    className={`max-w-[80%] rounded-xl border px-3 py-2 text-sm ${
+                    className={`max-w-[80%] rounded-sm-sm border px-3 py-2 text-sm ${
                       mine
-                        ? "ml-auto bg-violet-900/30 border-violet-700/50 text-violet-100"
-                        : "mr-auto bg-gray-900 border-gray-800 text-gray-200"
+                        ? "ml-auto bg-violet-100 border-violet-400/60 text-violet-800"
+                        : "mr-auto bg-stone-50 border-stone-300 text-stone-800"
                     }`}
                   >
-                    <div className="text-[10px] mb-1 text-gray-500">
+                    <div className="text-[10px] mb-1 text-stone-500">
                       {m.senderRole === "ADMIN" ? `Admin (${m.senderUsername})` : `Client (${m.senderUsername})`} ·{" "}
                       {new Date(m.createdAt).toLocaleTimeString()}
                     </div>
@@ -212,7 +212,7 @@ export default function AdminSupportPanel() {
             </div>
 
             {!isClosed && (
-              <div className="border-t border-gray-800 bg-gray-950/80 p-3">
+              <div className="border-t border-emerald-300/50 bg-[#f4efe6]/70 p-3">
                 <div className="flex items-center gap-2">
                   <textarea
                     value={input}
@@ -224,12 +224,12 @@ export default function AdminSupportPanel() {
                       }
                     }}
                     placeholder="Raspunde clientului..."
-                    className="flex-1 resize-none h-12 sm:h-16 rounded-lg bg-gray-900 border border-gray-800 text-gray-100 text-sm px-3 py-2 outline-none focus:border-violet-500"
+                    className="flex-1 resize-none h-12 sm:h-16 rounded-sm-sm bg-stone-50 border border-stone-300 text-stone-900 text-sm px-3 py-2 outline-none focus:border-violet-500"
                   />
                   <button
                     onClick={sendReply}
                     disabled={!input.trim()}
-                    className="h-12 sm:h-16 px-4 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="h-12 sm:h-16 px-4 rounded-sm-sm bg-violet-600 hover:bg-violet-500 text-stone-900 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     Trimite
                   </button>

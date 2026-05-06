@@ -59,8 +59,8 @@ function ModeTab({
       onClick={onClick}
       className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-mono text-xs uppercase tracking-widest transition-all duration-300 border ${
         active === mode
-          ? "bg-green-500/15 border-green-500/50 text-green-300"
-          : "border-green-900/30 text-green-800 hover:text-green-600 hover:border-green-800/60 hover:bg-green-950/30"
+          ? "bg-emerald-500/15 border-emerald-600/50 text-emerald-800"
+          : "border-emerald-200/30 text-stone-400 hover:text-emerald-700 hover:border-emerald-300/60 hover:bg-emerald-50/30"
       }`}
     >
       {icon && <span className="text-base">{icon}</span>}
@@ -72,28 +72,28 @@ function ModeTab({
 function ResultCard({ result, onView }: { result: GeoResult; onView: (r: GeoResult) => void }) {
   return (
     <div
-      className="group flex items-start justify-between gap-4 p-4 rounded-xl border border-green-900/30 bg-gray-900/60 hover:border-green-600/50 hover:bg-gray-900/80 transition-all cursor-pointer"
+      className="group flex items-start justify-between gap-4 p-4 rounded-xl border border-emerald-200/30 bg-stone-50/60 hover:border-emerald-500/50 hover:bg-stone-50/80 transition-all cursor-pointer"
       onClick={() => onView(result)}
     >
       <div className="flex-1 min-w-0">
-        <p className="text-green-200 text-sm font-semibold truncate">{result.name}</p>
+        <p className="text-emerald-800 text-sm font-semibold truncate">{result.name}</p>
         <div className="flex flex-wrap gap-3 mt-1.5">
-          <span className="text-green-700 font-mono text-xs">
+          <span className="text-stone-500 font-mono text-xs">
             {formatCoord(result.lat, "N", "S")}
           </span>
-          <span className="text-green-700 font-mono text-xs">
+          <span className="text-stone-500 font-mono text-xs">
             {formatCoord(result.lon, "E", "W")}
           </span>
         </div>
         {result.country && (
-          <p className="text-green-800 text-xs mt-1 font-mono">{result.region ? `${result.region}, ` : ""}{result.country}</p>
+          <p className="text-stone-400 text-xs mt-1 font-mono">{result.region ? `${result.region}, ` : ""}{result.country}</p>
         )}
       </div>
       <div className="flex flex-col items-end gap-2 shrink-0">
-        <span className="text-xs px-2 py-0.5 rounded border border-green-900/40 text-green-700 font-mono capitalize">
+        <span className="text-xs px-2 py-0.5 rounded border border-emerald-200/40 text-stone-500 font-mono capitalize">
           {result.type}
         </span>
-        <span className="text-green-600 text-xs opacity-0 group-hover:opacity-100 transition-opacity font-mono">
+        <span className="text-emerald-700 text-xs opacity-0 group-hover:opacity-100 transition-opacity font-mono">
           Ver pe hartă →
         </span>
       </div>
@@ -367,25 +367,25 @@ export default function GeoSearch({ onClose, onViewOnMap }: GeoSearchProps) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4"
-      style={{ background: "rgba(0,0,0,0.85)" }}
+      style={{ background: "rgba(40,30,10,0.45)" }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="relative w-full h-full sm:h-auto sm:max-w-2xl sm:max-h-[90vh] bg-gray-950 border-0 sm:border border-green-900/50 rounded-none sm:rounded-2xl shadow-2xl shadow-green-950/50 flex flex-col overflow-hidden">
+      <div className="relative w-full h-full sm:h-auto sm:max-w-2xl sm:max-h-[90vh] bg-stone-100 border-0 sm:border border-emerald-200/50 rounded-none sm:rounded-2xl shadow-2xl shadow-emerald-100/50 flex flex-col overflow-hidden">
 
         {/* ── Header ── */}
-        <div className="shrink-0 flex items-center justify-between px-6 py-4 border-b border-green-900/30 bg-gray-950/90">
+        <div className="shrink-0 flex items-center justify-between px-6 py-4 border-b border-emerald-200/30 bg-stone-100/90">
           <div className="flex items-center gap-3">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block shrink-0" />
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block shrink-0" />
             <div>
-              <h2 className="text-green-300 font-mono font-bold text-sm tracking-widest uppercase">
+              <h2 className="text-emerald-800 font-mono font-bold text-sm tracking-widest uppercase">
                 GeoSearch
               </h2>
-              <p className="text-green-900 font-mono text-xs">Caută orice locație de pe glob</p>
+              <p className="text-stone-400 font-mono text-xs">Caută orice locație de pe glob</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-600 hover:text-red-400 transition-colors text-xl font-mono"
+            className="text-stone-500 hover:text-red-700 transition-colors text-xl font-mono"
             title="Închide (Esc)"
           >
             ✕
@@ -393,7 +393,7 @@ export default function GeoSearch({ onClose, onViewOnMap }: GeoSearchProps) {
         </div>
 
         {/* ── Mode tabs ── */}
-        <div className="shrink-0 flex gap-1 sm:gap-2 px-3 sm:px-6 pt-3 sm:pt-4 pb-2 sm:pb-3 border-b border-green-900/20">
+        <div className="shrink-0 flex gap-1 sm:gap-2 px-3 sm:px-6 pt-3 sm:pt-4 pb-2 sm:pb-3 border-b border-emerald-200/20">
           <ModeTab mode="name"   active={mode} onClick={() => setMode("name")}   icon="" label="Nume" />
           <ModeTab mode="coords" active={mode} onClick={() => setMode("coords")} icon="" label="Coordonate GPS" />
           <ModeTab mode="image"  active={mode} onClick={() => setMode("image")}  icon="" label="Imagine" />
@@ -406,17 +406,17 @@ export default function GeoSearch({ onClose, onViewOnMap }: GeoSearchProps) {
           {mode === "name" && (
             <div className="space-y-4">
               <div className="relative">
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-green-700 text-base pointer-events-none">🔍</span>
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-500 text-base pointer-events-none">🔍</span>
                 <input
                   autoFocus
                   type="text"
                   value={nameQuery}
                   onChange={(e) => setNameQuery(e.target.value)}
                   placeholder="ex: București, Munții Bucegi, Dunărea..."
-                  className="w-full pl-10 pr-4 py-3 bg-gray-900/80 border border-green-900/40 rounded-xl text-green-100 placeholder-green-900/60 font-mono text-sm focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 transition"
+                  className="w-full pl-10 pr-4 py-3 bg-stone-50/80 border border-emerald-200/40 rounded-xl text-emerald-900 placeholder-green-900/60 font-mono text-sm focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-emerald-600 transition"
                 />
                 {nameLoading && (
-                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-green-600 animate-spin text-sm">⟳</span>
+                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-emerald-700 animate-spin text-sm">⟳</span>
                 )}
               </div>
 
@@ -426,7 +426,7 @@ export default function GeoSearch({ onClose, onViewOnMap }: GeoSearchProps) {
 
               {nameResults.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-green-800 font-mono text-xs uppercase tracking-widest px-1">
+                  <p className="text-stone-400 font-mono text-xs uppercase tracking-widest px-1">
                     {nameResults.length} rezultate
                   </p>
                   {nameResults.map((r, i) => (
@@ -437,8 +437,8 @@ export default function GeoSearch({ onClose, onViewOnMap }: GeoSearchProps) {
 
               {!nameQuery && (
                 <div className="text-center py-8">
-                  <p className="text-green-900 font-mono text-xs">Introdu un nume de locație pentru a căuta</p>
-                  <p className="text-green-900/50 font-mono text-xs mt-1">orașe · munți · râuri · țări · regiuni</p>
+                  <p className="text-stone-400 font-mono text-xs">Introdu un nume de locație pentru a căuta</p>
+                  <p className="text-stone-400/50 font-mono text-xs mt-1">orașe · munți · râuri · țări · regiuni</p>
                 </div>
               )}
             </div>
@@ -447,12 +447,12 @@ export default function GeoSearch({ onClose, onViewOnMap }: GeoSearchProps) {
           {/* ══ COORDS MODE ══ */}
           {mode === "coords" && (
             <div className="space-y-4">
-              <p className="text-green-800 font-mono text-xs">
-                Introdu coordonate zecimale (WGS84). Ex: lat <span className="text-green-600">44.4268</span>, lon <span className="text-green-600">26.1025</span>
+              <p className="text-stone-400 font-mono text-xs">
+                Introdu coordonate zecimale (WGS84). Ex: lat <span className="text-emerald-700">44.4268</span>, lon <span className="text-emerald-700">26.1025</span>
               </p>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs text-green-800 font-mono uppercase tracking-widest mb-1.5">
+                  <label className="block text-xs text-stone-400 font-mono uppercase tracking-widest mb-1.5">
                     📐 Latitudine
                   </label>
                   <input
@@ -463,12 +463,12 @@ export default function GeoSearch({ onClose, onViewOnMap }: GeoSearchProps) {
                     value={coordLat}
                     onChange={(e) => setCoordLat(e.target.value)}
                     placeholder="-90 ... 90"
-                    className="w-full px-3 py-2.5 bg-gray-900/80 border border-green-900/40 rounded-xl text-green-100 placeholder-green-900/50 font-mono text-sm focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 transition"
+                    className="w-full px-3 py-2.5 bg-stone-50/80 border border-emerald-200/40 rounded-xl text-emerald-900 placeholder-green-900/50 font-mono text-sm focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-emerald-600 transition"
                     onKeyDown={(e) => { if (e.key === "Enter") searchByCoords(); }}
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-green-800 font-mono uppercase tracking-widest mb-1.5">
+                  <label className="block text-xs text-stone-400 font-mono uppercase tracking-widest mb-1.5">
                     📐 Longitudine
                   </label>
                   <input
@@ -479,7 +479,7 @@ export default function GeoSearch({ onClose, onViewOnMap }: GeoSearchProps) {
                     value={coordLon}
                     onChange={(e) => setCoordLon(e.target.value)}
                     placeholder="-180 ... 180"
-                    className="w-full px-3 py-2.5 bg-gray-900/80 border border-green-900/40 rounded-xl text-green-100 placeholder-green-900/50 font-mono text-sm focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 transition"
+                    className="w-full px-3 py-2.5 bg-stone-50/80 border border-emerald-200/40 rounded-xl text-emerald-900 placeholder-green-900/50 font-mono text-sm focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-emerald-600 transition"
                     onKeyDown={(e) => { if (e.key === "Enter") searchByCoords(); }}
                   />
                 </div>
@@ -487,7 +487,7 @@ export default function GeoSearch({ onClose, onViewOnMap }: GeoSearchProps) {
 
               {/* Quick presets */}
               <div>
-                <p className="text-green-900 font-mono text-xs mb-2">Locații rapide:</p>
+                <p className="text-stone-400 font-mono text-xs mb-2">Locații rapide:</p>
                 <div className="flex flex-wrap gap-2">
                   {[
                     { name: "București", lat: "44.4268", lon: "26.1025" },
@@ -498,7 +498,7 @@ export default function GeoSearch({ onClose, onViewOnMap }: GeoSearchProps) {
                     <button
                       key={p.name}
                       onClick={() => { setCoordLat(p.lat); setCoordLon(p.lon); setCoordResult(null); setCoordError(""); }}
-                      className="text-xs px-2.5 py-1 rounded-lg border border-green-900/30 text-green-800 hover:text-green-500 hover:border-green-700/50 font-mono transition-all"
+                      className="text-xs px-2.5 py-1 rounded-lg border border-emerald-200/30 text-stone-400 hover:text-emerald-600 hover:border-emerald-400/50 font-mono transition-all"
                     >
                       {p.name}
                     </button>
@@ -509,18 +509,18 @@ export default function GeoSearch({ onClose, onViewOnMap }: GeoSearchProps) {
               <button
                 onClick={searchByCoords}
                 disabled={coordLoading || !coordLat || !coordLon}
-                className="w-full py-2.5 rounded-xl border border-green-500/40 bg-green-500/10 hover:bg-green-500/20 hover:border-green-400 disabled:opacity-40 text-green-300 font-mono text-sm uppercase tracking-widest transition-all"
+                className="w-full py-2.5 rounded-xl border border-emerald-600/40 bg-emerald-500/10 hover:bg-emerald-500/20 hover:border-emerald-700 disabled:opacity-40 text-emerald-800 font-mono text-sm uppercase tracking-widest transition-all"
               >
                 {coordLoading ? "⟳ Se caută..." : "→ Identifică Locația"}
               </button>
 
               {coordError && (
-                <p className="text-red-400 text-xs font-mono">⚠ {coordError}</p>
+                <p className="text-red-700 text-xs font-mono">⚠ {coordError}</p>
               )}
 
               {coordResult && (
                 <div className="space-y-2">
-                  <p className="text-green-800 font-mono text-xs uppercase tracking-widest">Locație identificată</p>
+                  <p className="text-stone-400 font-mono text-xs uppercase tracking-widest">Locație identificată</p>
                   <ResultCard result={coordResult} onView={handleView} />
                 </div>
               )}
@@ -530,9 +530,9 @@ export default function GeoSearch({ onClose, onViewOnMap }: GeoSearchProps) {
           {/* ══ IMAGE MODE ══ */}
           {mode === "image" && (
             <div className="space-y-4">
-              <div className="bg-gray-900/40 border border-green-900/20 rounded-xl p-3 text-xs font-mono text-green-800 space-y-1">
-                <p className="text-green-600 font-semibold">ℹ Cum funcționează:</p>
-                <p>Încarcă o fotografie care conține date <span className="text-green-500">GPS EXIF</span> (de obicei fotografii făcute cu telefonul când locația era activată). Aplicația extrage coordonatele și identifică locația pe hartă.</p>
+              <div className="bg-stone-50/40 border border-emerald-200/20 rounded-xl p-3 text-xs font-mono text-stone-400 space-y-1">
+                <p className="text-emerald-700 font-semibold">ℹ Cum funcționează:</p>
+                <p>Încarcă o fotografie care conține date <span className="text-emerald-600">GPS EXIF</span> (de obicei fotografii făcute cu telefonul când locația era activată). Aplicația extrage coordonatele și identifică locația pe hartă.</p>
               </div>
 
               {!imagePreview ? (
@@ -540,14 +540,14 @@ export default function GeoSearch({ onClose, onViewOnMap }: GeoSearchProps) {
                   ref={dropRef}
                   onDrop={handleFileDrop}
                   onDragOver={(e) => e.preventDefault()}
-                  onDragEnter={(e) => { e.preventDefault(); dropRef.current?.classList.add("border-green-500"); }}
-                  onDragLeave={() => dropRef.current?.classList.remove("border-green-500")}
+                  onDragEnter={(e) => { e.preventDefault(); dropRef.current?.classList.add("border-emerald-600"); }}
+                  onDragLeave={() => dropRef.current?.classList.remove("border-emerald-600")}
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex flex-col items-center justify-center gap-3 py-12 border-2 border-dashed border-green-900/40 rounded-xl cursor-pointer hover:border-green-700/60 hover:bg-green-950/20 transition-all"
+                  className="flex flex-col items-center justify-center gap-3 py-12 border-2 border-dashed border-emerald-200/40 rounded-xl cursor-pointer hover:border-emerald-400/60 hover:bg-emerald-50/20 transition-all"
                 >
                   <span className="text-4xl">📷</span>
-                  <p className="text-green-600 font-mono text-sm">Trage o imagine aici sau apasă pentru a selecta</p>
-                  <p className="text-green-900 font-mono text-xs">JPG · PNG · WebP · max 10 MB</p>
+                  <p className="text-emerald-700 font-mono text-sm">Trage o imagine aici sau apasă pentru a selecta</p>
+                  <p className="text-stone-400 font-mono text-xs">JPG · PNG · WebP · max 10 MB</p>
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -559,29 +559,29 @@ export default function GeoSearch({ onClose, onViewOnMap }: GeoSearchProps) {
               ) : (
                 <div className="space-y-3">
                   {/* Image preview */}
-                  <div className="relative rounded-xl overflow-hidden border border-green-900/30 bg-gray-900">
+                  <div className="relative rounded-xl overflow-hidden border border-emerald-200/30 bg-stone-50">
                     <img
                       src={imagePreview}
                       alt="Preview"
                       className="w-full max-h-56 object-cover"
                     />
-                    <div className="absolute inset-0 bg-linear-to-t from-gray-950/80 to-transparent pointer-events-none" />
+                    <div className="absolute inset-0 bg-linear-to-t from-stone-100/80 to-transparent pointer-events-none" />
                     <button
                       onClick={clearImage}
-                      className="absolute top-2 right-2 w-7 h-7 rounded-full bg-gray-950/80 border border-gray-700 text-gray-400 hover:text-red-400 hover:border-red-700/60 transition-all flex items-center justify-center text-xs"
+                      className="absolute top-2 right-2 w-7 h-7 rounded-full bg-stone-100/80 border border-stone-400 text-stone-600 hover:text-red-700 hover:border-red-500/60 transition-all flex items-center justify-center text-xs"
                     >
                       ✕
                     </button>
                     <div className="absolute bottom-2 left-3">
-                      <p className="text-green-300 font-mono text-xs">{imageFile?.name}</p>
-                      <p className="text-green-800 font-mono text-xs">{imageFile ? (imageFile.size / 1024).toFixed(0) + " KB" : ""}</p>
+                      <p className="text-emerald-800 font-mono text-xs">{imageFile?.name}</p>
+                      <p className="text-stone-400 font-mono text-xs">{imageFile ? (imageFile.size / 1024).toFixed(0) + " KB" : ""}</p>
                     </div>
                   </div>
 
                   <button
                     onClick={analyzeImage}
                     disabled={imageLoading}
-                    className="w-full py-2.5 rounded-xl border border-green-500/40 bg-green-500/10 hover:bg-green-500/20 hover:border-green-400 disabled:opacity-40 text-green-300 font-mono text-sm uppercase tracking-widest transition-all"
+                    className="w-full py-2.5 rounded-xl border border-emerald-600/40 bg-emerald-500/10 hover:bg-emerald-500/20 hover:border-emerald-700 disabled:opacity-40 text-emerald-800 font-mono text-sm uppercase tracking-widest transition-all"
                   >
                     {imageLoading ? "⟳ Se analizează..." : "→ Extrage Locația din Imagine"}
                   </button>
@@ -596,7 +596,7 @@ export default function GeoSearch({ onClose, onViewOnMap }: GeoSearchProps) {
 
               {imageResult && (
                 <div className="space-y-2">
-                  <p className="text-green-800 font-mono text-xs uppercase tracking-widest">📍 Locație extrasă din EXIF</p>
+                  <p className="text-stone-400 font-mono text-xs uppercase tracking-widest">📍 Locație extrasă din EXIF</p>
                   <ResultCard result={imageResult} onView={handleView} />
                 </div>
               )}
@@ -605,13 +605,13 @@ export default function GeoSearch({ onClose, onViewOnMap }: GeoSearchProps) {
         </div>
 
         {/* ── Footer ── */}
-        <div className="shrink-0 px-6 py-3 border-t border-green-900/20 flex items-center justify-between">
-          <span className="text-green-900 font-mono text-xs">
+        <div className="shrink-0 px-6 py-3 border-t border-emerald-200/20 flex items-center justify-between">
+          <span className="text-stone-400 font-mono text-xs">
             {mode === "name" ? "Powered by Nominatim · OpenStreetMap" :
              mode === "coords" ? "Geocodare inversă · WGS84" :
              "EXIF GPS Extractor · Local"}
           </span>
-          <span className="text-green-900 font-mono text-xs">ESC pentru a închide</span>
+          <span className="text-stone-400 font-mono text-xs">ESC pentru a închide</span>
         </div>
       </div>
     </div>

@@ -85,11 +85,11 @@ function SelectField<T extends string>({
 }) {
   return (
     <label className="flex flex-col gap-1">
-      <span className="text-xs text-indigo-300 font-mono">{label}</span>
+      <span className="text-[10px] text-emerald-700 font-mono uppercase tracking-[0.3em]">{label}</span>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value as T)}
-        className="rounded-md bg-gray-900 border border-indigo-900/50 text-gray-100 px-3 py-2 text-sm"
+        className="rounded-sm bg-[#fbf6ec]/80 border border-emerald-300/60 text-stone-900 px-3 py-2 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600"
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>
@@ -188,27 +188,27 @@ export default function HolidayPlanner({ onClose }: HolidayPlannerProps) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4"
-      style={{ background: "rgba(0,0,0,0.85)" }}
+      style={{ background: "rgba(40,30,10,0.45)" }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="relative w-full h-full sm:max-w-6xl sm:h-[86vh] bg-gray-950 rounded-none sm:rounded-2xl border-0 sm:border border-indigo-900/50 overflow-hidden shadow-2xl shadow-indigo-950/40 flex flex-col">
-        <div className="flex items-center justify-between px-5 py-3 border-b border-indigo-900/40 bg-gray-950/90">
+      <div className="relative w-full h-full sm:max-w-6xl sm:h-[86vh] bg-[#fbf6ec] rounded-none sm:rounded-sm border-0 sm:border border-emerald-300/60 overflow-hidden shadow-[0_30px_80px_-30px_rgba(25,107,70,0.35)] flex flex-col font-mono">
+        <div className="relative flex items-center justify-between px-5 py-3 border-b border-emerald-300/50 bg-[#f4efe6]/85"><span className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-emerald-500/60 to-transparent" />
           <div>
-            <h2 className="text-indigo-300 font-mono font-bold text-sm tracking-widest uppercase">Holiday AI Planner</h2>
-            <p className="text-indigo-800 font-mono text-xs">Alege criteriile si primesti vacante recomandate</p>
+            <h2 className="text-emerald-700 font-mono font-bold text-[12px] tracking-[0.3em] uppercase">Holiday AI · Planner</h2>
+            <p className="text-stone-500 font-mono text-[11px] tracking-wider">Alege criteriile si primesti vacante recomandate</p>
           </div>
-          <button onClick={onClose} className="text-gray-500 hover:text-red-400 text-xl leading-none font-mono">X</button>
+          <button onClick={onClose} className="text-stone-500 hover:text-red-700 text-xl leading-none font-mono">X</button>
         </div>
 
         {/* Toast notification */}
         {toastMsg && (
-          <div className="absolute top-16 left-1/2 -translate-x-1/2 z-10 bg-indigo-900/90 border border-indigo-500/60 text-indigo-100 text-xs font-mono px-4 py-2 rounded-lg shadow-lg">
+          <div className="absolute top-16 left-1/2 -translate-x-1/2 z-10 bg-emerald-700 border border-emerald-500 text-stone-50 text-xs font-mono px-4 py-2 rounded-sm shadow-lg tracking-wider">
             ★ {toastMsg}
           </div>
         )}
 
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
-          <div className="text-indigo-200 font-mono text-sm">{stepTitle}</div>
+          <div className="text-emerald-700 font-mono text-[11px] tracking-[0.3em] uppercase font-semibold">{stepTitle}</div>
 
           {step === 1 && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -232,7 +232,7 @@ export default function HolidayPlanner({ onClose }: HolidayPlannerProps) {
               <SelectField label="Tip cazare" value={form.comfort.accommodation} options={accommodationOptions} onChange={(value) => setForm((prev) => ({ ...prev, comfort: { ...prev.comfort, accommodation: value } }))} />
               <SelectField label="Gastronomie" value={form.comfort.gastronomy} options={gastronomyOptions} onChange={(value) => setForm((prev) => ({ ...prev, comfort: { ...prev.comfort, gastronomy: value } }))} />
               <SelectField label="Aglomeratie" value={form.comfort.crowd} options={crowdOptions} onChange={(value) => setForm((prev) => ({ ...prev, comfort: { ...prev.comfort, crowd: value } }))} />
-              <label className="flex items-center gap-2 text-xs text-indigo-300 font-mono mt-6">
+              <label className="flex items-center gap-2 text-[11px] text-emerald-700 font-mono tracking-wider mt-6">
                 <input
                   type="checkbox"
                   checked={form.enrichWithTurismData ?? true}
@@ -247,7 +247,7 @@ export default function HolidayPlanner({ onClose }: HolidayPlannerProps) {
             <button
               onClick={() => setStep((s) => Math.max(1, s - 1))}
               disabled={!canGoBack || loading}
-              className="px-4 py-2 rounded border border-indigo-900/50 text-indigo-300 disabled:opacity-40"
+              className="px-4 py-2 rounded-sm border border-stone-300 text-stone-600 hover:text-stone-900 hover:border-stone-400 disabled:opacity-40 text-[11px] tracking-[0.3em] uppercase font-semibold"
             >
               Inapoi
             </button>
@@ -256,7 +256,7 @@ export default function HolidayPlanner({ onClose }: HolidayPlannerProps) {
               <button
                 onClick={() => setStep((s) => Math.min(3, s + 1))}
                 disabled={loading}
-                className="px-4 py-2 rounded border border-indigo-600/60 text-indigo-200"
+                className="px-4 py-2 rounded-sm border border-emerald-500/60 text-emerald-700 hover:bg-emerald-100/40 hover:border-emerald-600 text-[11px] tracking-[0.3em] uppercase font-semibold"
               >
                 Urmatorul
               </button>
@@ -264,43 +264,43 @@ export default function HolidayPlanner({ onClose }: HolidayPlannerProps) {
               <button
                 onClick={() => { void generate(); }}
                 disabled={loading}
-                className="px-4 py-2 rounded border border-indigo-500/70 text-indigo-100 disabled:opacity-40"
+                className="px-5 py-2.5 rounded-sm bg-emerald-700 hover:bg-emerald-800 text-stone-50 disabled:opacity-40 text-[11px] tracking-[0.3em] uppercase font-semibold shadow-[0_8px_24px_-12px_rgba(25,107,70,0.6)]"
               >
                 {loading ? "Se genereaza..." : "Genereaza vacante"}
               </button>
             )}
           </div>
 
-          {error && <div className="text-red-400 text-sm font-mono">{error}</div>}
+          {error && <div className="text-red-700 text-sm font-mono">{error}</div>}
 
           {result && (
             <div className="pt-3 space-y-3">
-              <div className="text-indigo-300 text-xs font-mono uppercase tracking-widest">
+              <div className="text-emerald-700 text-[11px] font-mono uppercase tracking-[0.3em] font-semibold">
                 Recomandari AI ({result.recommendations.length})
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {result.recommendations.map((rec, idx) => (
-                  <div key={`${rec.destinationCity}-${idx}`} className="rounded-xl border border-indigo-900/50 bg-gray-900/70 p-4 space-y-2">
+                  <div key={`${rec.destinationCity}-${idx}`} className="rounded-sm border border-emerald-300/60 bg-[#fbf6ec]/80 p-4 space-y-2 hover:border-emerald-500 transition-colors">
                     <div className="flex items-start justify-between gap-2">
-                      <div className="text-indigo-100 font-semibold text-base">
+                      <div className="text-stone-900 font-semibold text-base">
                         {rec.title || `${rec.destinationCity}, ${rec.destinationCountry}`}
                       </div>
                       <button
                         onClick={() => handleToggleFavorite(rec)}
                         title={isFavorite(rec) ? "Elimină din favorite" : "Adaugă la favorite"}
                         className={`shrink-0 text-lg transition-all duration-200 hover:scale-125 ${
-                          isFavorite(rec) ? "text-yellow-400" : "text-gray-600 hover:text-yellow-400"
+                          isFavorite(rec) ? "text-amber-700" : "text-stone-500 hover:text-amber-700"
                         }`}
                       >
                         {isFavorite(rec) ? "★" : "☆"}
                       </button>
                     </div>
-                    <div className="text-indigo-300 text-sm">
+                    <div className="text-emerald-700 text-sm tracking-wider">
                       {rec.destinationCity}, {rec.destinationCountry}
                     </div>
-                    <div className="text-gray-300 text-sm leading-relaxed">{rec.reason}</div>
-                    <div className="grid grid-cols-2 gap-2 text-xs text-gray-400">
+                    <div className="text-stone-700 text-sm leading-relaxed">{rec.reason}</div>
+                    <div className="grid grid-cols-2 gap-2 text-xs text-stone-600">
                       <div>Sezon: {rec.bestSeason}</div>
                       <div>Buget: {rec.estimatedBudget}</div>
                       <div>Durata: {rec.suggestedDuration}</div>
@@ -308,15 +308,15 @@ export default function HolidayPlanner({ onClose }: HolidayPlannerProps) {
                     </div>
 
                     {rec.highlights?.length > 0 && (
-                      <div className="text-xs text-gray-300">Highlight: {rec.highlights.slice(0, 3).join(", ")}</div>
+                      <div className="text-xs text-stone-700">Highlight: {rec.highlights.slice(0, 3).join(", ")}</div>
                     )}
 
                     {rec.events?.length > 0 && (
-                      <div className="text-xs text-fuchsia-300">Evenimente: {rec.events.slice(0, 2).map((event) => event.name).join(" | ")}</div>
+                      <div className="text-xs text-amber-700">Evenimente: {rec.events.slice(0, 2).map((event) => event.name).join(" | ")}</div>
                     )}
 
                     {rec.places?.length > 0 && (
-                      <div className="text-xs text-emerald-300">Locuri: {rec.places.slice(0, 2).map((place) => place.name).join(" | ")}</div>
+                      <div className="text-xs text-emerald-800">Locuri: {rec.places.slice(0, 2).map((place) => place.name).join(" | ")}</div>
                     )}
                   </div>
                 ))}

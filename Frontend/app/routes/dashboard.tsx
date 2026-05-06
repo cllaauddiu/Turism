@@ -14,8 +14,8 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <div className="text-green-400 font-mono text-sm animate-pulse">Se incarca...</div>
+      <div className="min-h-screen bg-stone-100 flex items-center justify-center">
+        <div className="text-emerald-700 font-mono text-sm animate-pulse">Se incarca...</div>
       </div>
     );
   }

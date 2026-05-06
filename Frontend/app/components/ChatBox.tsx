@@ -90,38 +90,38 @@ export default function ChatBox({ onClose, initialTab = "ai" }: ChatBoxProps) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4"
-      style={{ background: "rgba(0,0,0,0.85)" }}
+      style={{ background: "rgba(40,30,10,0.45)" }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="relative w-full h-full sm:max-w-4xl sm:h-[82vh] bg-gray-950 rounded-none sm:rounded-2xl border-0 sm:border border-cyan-900/50 overflow-hidden shadow-2xl shadow-cyan-950/40 flex flex-col">
-        <div className="flex items-center justify-between px-5 py-3 border-b border-cyan-900/40 bg-gray-950/90">
+      <div className="relative w-full h-full sm:max-w-4xl sm:h-[82vh] bg-[#fbf6ec] rounded-none sm:rounded-sm border-0 sm:border border-emerald-300/60 overflow-hidden shadow-[0_30px_80px_-30px_rgba(25,107,70,0.35)] flex flex-col font-mono">
+        <div className="relative flex items-center justify-between px-5 py-3 border-b border-emerald-300/50 bg-[#f4efe6]/85"><span className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-emerald-500/60 to-transparent" />
           <div className="flex items-center gap-3">
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 inline-block shrink-0" />
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block shrink-0" />
             <div>
-              <h2 className="text-cyan-300 font-mono font-bold text-sm tracking-widest uppercase">
+              <h2 className="text-emerald-700 font-mono font-bold text-[12px] tracking-[0.3em] uppercase">
                 {activeTab === "ai" ? "AI Assistant" : "Vorbeste cu Admin"}
               </h2>
-              <p className="text-cyan-800 font-mono text-xs">
+              <p className="text-stone-500 font-mono text-xs">
                 {activeTab === "ai" ? "Conversatie cu AIService" : "Chat in timp real cu un administrator"}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-red-400 transition-colors text-xl leading-none font-mono"
+            className="text-stone-500 hover:text-red-700 transition-colors text-xl leading-none font-mono"
             title="Inchide (Esc)"
           >
             X
           </button>
         </div>
 
-        <div className="flex border-b border-cyan-900/40 bg-gray-950/60">
+        <div className="flex border-b border-emerald-300/50 bg-[#f4efe6]/40">
           <button
             onClick={() => setActiveTab("ai")}
             className={`flex-1 px-4 py-2 font-mono text-xs tracking-wider uppercase transition-colors ${
               activeTab === "ai"
-                ? "text-cyan-300 border-b-2 border-cyan-500 bg-gray-900/50"
-                : "text-gray-500 hover:text-cyan-400"
+                ? "text-emerald-700 border-b-2 border-emerald-600 bg-[#fbf6ec]"
+                : "text-stone-500 hover:text-emerald-700"
             }`}
           >
             AI Assistant
@@ -130,8 +130,8 @@ export default function ChatBox({ onClose, initialTab = "ai" }: ChatBoxProps) {
             onClick={() => setActiveTab("admin")}
             className={`flex-1 px-4 py-2 font-mono text-xs tracking-wider uppercase transition-colors ${
               activeTab === "admin"
-                ? "text-cyan-300 border-b-2 border-cyan-500 bg-gray-900/50"
-                : "text-gray-500 hover:text-cyan-400"
+                ? "text-emerald-700 border-b-2 border-emerald-600 bg-[#fbf6ec]"
+                : "text-stone-500 hover:text-emerald-700"
             }`}
           >
             Vorbeste cu Admin
@@ -140,14 +140,14 @@ export default function ChatBox({ onClose, initialTab = "ai" }: ChatBoxProps) {
 
         {user?.role === "GUEST" ? (
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-cyan-900/20 border border-cyan-700/50 flex items-center justify-center text-2xl">
+            <div className="w-16 h-16 rounded-full bg-emerald-100/20 border border-emerald-400/50 flex items-center justify-center text-2xl">
               🔒
             </div>
-            <h3 className="text-cyan-300 font-mono text-lg font-bold">Acces Restrictionat</h3>
-            <p className="text-gray-400 font-mono text-sm max-w-sm">
+            <h3 className="text-emerald-700 font-mono text-lg font-bold">Acces Restrictionat</h3>
+            <p className="text-stone-600 font-mono text-sm max-w-sm">
               Acest serviciu este disponibil doar membrilor. Creează-ți un cont pentru a interacționa cu asistentul AI sau cu administratorul!
             </p>
-            <a href="/auth" className="mt-4 px-6 py-2 bg-transparent border border-cyan-500 text-cyan-300 rounded font-mono text-sm tracking-wider uppercase hover:bg-cyan-900/30 transition-colors">
+            <a href="/auth" className="mt-4 px-6 py-2 bg-transparent border border-emerald-600 text-emerald-700 rounded-sm font-mono text-sm tracking-wider uppercase hover:bg-emerald-100/30 transition-colors">
               Creează cont
             </a>
           </div>
@@ -157,28 +157,28 @@ export default function ChatBox({ onClose, initialTab = "ai" }: ChatBoxProps) {
               {messages.map((message) => (
                 <div
                   key={message.id}
-                  className={`max-w-[85%] rounded-xl border px-3 py-2 font-mono text-sm ${
+                  className={`max-w-[85%] rounded-sm border px-3 py-2 font-mono text-sm ${
                     message.role === "user"
-                      ? "ml-auto bg-cyan-900/30 border-cyan-700/50 text-cyan-100"
-                      : "mr-auto bg-gray-900/90 border-cyan-900/40 text-gray-200"
+                      ? "ml-auto bg-emerald-100/30 border-emerald-400/50 text-emerald-800"
+                      : "mr-auto bg-stone-50/90 border-emerald-200/40 text-stone-800"
                   }`}
                 >
                   <div className="whitespace-pre-wrap leading-relaxed">{message.text}</div>
                   {message.role === "ai" && message.model && (
-                    <div className="text-[10px] mt-1 text-cyan-700">model: {message.model}</div>
+                    <div className="text-[10px] mt-1 text-stone-500">model: {message.model}</div>
                   )}
                 </div>
               ))}
 
               {sending && (
-                <div className="mr-auto max-w-[85%] rounded-xl border border-cyan-900/40 bg-gray-900/90 px-3 py-2 font-mono text-sm text-gray-400 animate-pulse">
+                <div className="mr-auto max-w-[85%] rounded-sm border border-emerald-200/40 bg-stone-50/90 px-3 py-2 font-mono text-sm text-stone-600 animate-pulse">
                   AI scrie...
                 </div>
               )}
             </div>
 
-            <div className="border-t border-cyan-900/40 bg-gray-950/90 p-3">
-              {error && <div className="text-red-400 text-xs font-mono mb-2">{error}</div>}
+            <div className="border-t border-emerald-200/40 bg-stone-100/90 p-3">
+              {error && <div className="text-red-700 text-xs font-mono mb-2">{error}</div>}
               <div className="flex items-center gap-2">
                 <textarea
                   value={input}
@@ -190,12 +190,12 @@ export default function ChatBox({ onClose, initialTab = "ai" }: ChatBoxProps) {
                     }
                   }}
                   placeholder="Scrie mesajul tau..."
-                  className="flex-1 resize-none h-12 sm:h-20 rounded-lg bg-gray-900 border border-cyan-900/40 text-gray-100 font-mono text-sm px-3 py-2 outline-none focus:border-cyan-500"
+                  className="flex-1 resize-none h-12 sm:h-20 rounded-sm bg-stone-50 border border-emerald-200/40 text-stone-900 font-mono text-sm px-3 py-2 outline-none focus:border-emerald-600"
                 />
                 <button
                   onClick={() => { void sendMessage(); }}
                   disabled={sending || !input.trim()}
-                  className="h-12 sm:h-20 px-3 sm:px-4 rounded-lg border border-cyan-600/50 text-cyan-300 hover:bg-cyan-900/20 disabled:opacity-40 disabled:cursor-not-allowed font-mono text-sm"
+                  className="h-12 sm:h-20 px-3 sm:px-4 rounded-sm border border-emerald-500/50 text-emerald-700 hover:bg-emerald-100/20 disabled:opacity-40 disabled:cursor-not-allowed font-mono text-sm"
                 >
                   Trimite
                 </button>

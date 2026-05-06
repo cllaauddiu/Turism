@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { authApi } from "~/lib/api";
 import { useAuth } from "~/hooks/useAuth";
+import { CartoBackground, GraticuleTick, useTime, pad, useTypewriter } from "~/components/dashboard/atlas";
 
 const loginSchema = z.object({
   username: z.string().min(3, "Minim 3 caractere"),
@@ -23,270 +24,269 @@ const registerSchema = z.object({
 type LoginForm = z.infer<typeof loginSchema>;
 type RegisterForm = z.infer<typeof registerSchema>;
 
-// ── Decorative SVG world map (background) ─────────────────────────────────
-function WorldMapBg() {
-  return (
-    <svg viewBox="0 0 1000 500" className="w-full h-full opacity-15" fill="none" xmlns="http://www.w3.org/2000/svg">
-      {[50,100,150,200,250,300,350,400,450].map((y) => (
-        <line key={`h${y}`} x1="0" y1={y} x2="1000" y2={y} stroke="#4ade80" strokeWidth="0.4" />
-      ))}
-      {[100,200,300,400,500,600,700,800,900].map((x) => (
-        <line key={`v${x}`} x1={x} y1="0" x2={x} y2="500" stroke="#4ade80" strokeWidth="0.4" />
-      ))}
-      <path d="M 120 60 L 160 55 L 220 70 L 240 100 L 260 130 L 250 160 L 230 200 L 210 230 L 180 260 L 160 250 L 140 220 L 120 180 L 100 150 L 90 120 L 100 90 Z" fill="#4ade80" stroke="#22c55e" strokeWidth="1"/>
-      <path d="M 230 30 L 270 25 L 290 40 L 280 65 L 250 70 L 230 55 Z" fill="#4ade80" stroke="#22c55e" strokeWidth="1"/>
-      <path d="M 200 270 L 230 260 L 250 280 L 260 310 L 255 350 L 240 390 L 220 420 L 200 410 L 185 380 L 180 340 L 185 300 Z" fill="#4ade80" stroke="#22c55e" strokeWidth="1"/>
-      <path d="M 460 60 L 500 55 L 530 65 L 540 85 L 520 100 L 500 110 L 480 105 L 460 90 Z" fill="#4ade80" stroke="#22c55e" strokeWidth="1"/>
-      <path d="M 470 120 L 530 115 L 560 130 L 565 160 L 560 200 L 545 240 L 520 280 L 500 300 L 480 295 L 460 270 L 450 230 L 448 190 L 450 150 Z" fill="#4ade80" stroke="#22c55e" strokeWidth="1"/>
-      <path d="M 550 50 L 640 45 L 720 55 L 780 70 L 820 90 L 830 120 L 810 150 L 780 160 L 740 165 L 700 170 L 660 165 L 620 160 L 580 145 L 555 125 L 545 100 L 548 75 Z" fill="#4ade80" stroke="#22c55e" strokeWidth="1"/>
-      <path d="M 640 170 L 670 165 L 685 190 L 680 220 L 660 240 L 640 235 L 625 210 L 628 185 Z" fill="#4ade80" stroke="#22c55e" strokeWidth="1"/>
-      <path d="M 760 310 L 830 300 L 880 315 L 900 345 L 890 375 L 860 395 L 820 400 L 780 385 L 755 355 L 750 325 Z" fill="#4ade80" stroke="#22c55e" strokeWidth="1"/>
-      {/* Compass */}
-      <g transform="translate(950, 60)">
-        <circle cx="0" cy="0" r="25" stroke="#4ade80" strokeWidth="1" fill="none" opacity="0.5"/>
-        <line x1="0" y1="-22" x2="0" y2="-8" stroke="#4ade80" strokeWidth="1.5"/>
-        <line x1="0" y1="8" x2="0" y2="22" stroke="#4ade80" strokeWidth="1" opacity="0.5"/>
-        <line x1="-22" y1="0" x2="-8" y2="0" stroke="#4ade80" strokeWidth="1" opacity="0.5"/>
-        <line x1="8" y1="0" x2="22" y2="0" stroke="#4ade80" strokeWidth="1" opacity="0.5"/>
-        <polygon points="0,-22 -4,-8 0,-12 4,-8" fill="#4ade80"/>
-        <text x="0" y="-27" textAnchor="middle" fill="#4ade80" fontSize="7" fontFamily="serif">N</text>
-      </g>
-    </svg>
-  );
-}
-
-// ── Floating coordinate label ──────────────────────────────────────────────
-function CoordLabel({ top, left, text }: { top: string; left: string; text: string }) {
-  return (
-    <div className="absolute text-green-400/30 font-mono text-xs pointer-events-none select-none" style={{ top, left }}>
-      {text}
-    </div>
-  );
-}
-
-// ── Main Auth Page ─────────────────────────────────────────────────────────
+/* ═════════════════════════════════════════════════════════════════════════
+   AUTH PAGE — Cartographic Boarding Terminal
+   ═════════════════════════════════════════════════════════════════════════ */
 export default function AuthPage() {
   const [tab, setTab] = useState<"login" | "register">("login");
   const [serverError, setServerError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [pulse, setPulse] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const p = setInterval(() => setPulse((v) => !v), 2000);
-    return () => clearInterval(p);
-  }, []);
+  const t = useTime();
+  const utc = `${pad(t.getUTCHours())}:${pad(t.getUTCMinutes())}:${pad(t.getUTCSeconds())} UTC`;
+  const greet = useTypewriter("> initializare consola...   semnal stabil   transmit cripto: AES-256-GCM", 12, 200);
 
   const loginForm = useForm<LoginForm>({ resolver: zodResolver(loginSchema) });
   const registerForm = useForm<RegisterForm>({ resolver: zodResolver(registerSchema) });
 
   const handleLogin = async (data: LoginForm) => {
-    setServerError("");
-    setLoading(true);
+    setServerError(""); setLoading(true);
     try {
-      const response = await authApi.login(data);
-      login(response);
-      navigate("/dashboard");
+      const r = await authApi.login(data); login(r); navigate("/dashboard");
     } catch (e: any) {
-      setServerError(e?.response?.data?.message ?? "Credențiale incorecte.");
-    } finally {
-      setLoading(false);
-    }
+      setServerError(e?.response?.data?.message ?? "Credentiale incorecte.");
+    } finally { setLoading(false); }
   };
 
   const handleRegister = async (data: RegisterForm) => {
-    setServerError("");
-    setLoading(true);
+    setServerError(""); setLoading(true);
     try {
-      const response = await authApi.register({ username: data.username, password: data.password });
-      login(response);
-      navigate("/dashboard");
+      const r = await authApi.register({ username: data.username, password: data.password });
+      login(r); navigate("/dashboard");
     } catch (e: any) {
-      setServerError(e?.response?.data?.message ?? "Înregistrare eșuată. Încearcă din nou.");
-    } finally {
-      setLoading(false);
-    }
+      setServerError(e?.response?.data?.message ?? "Inregistrare esuata.");
+    } finally { setLoading(false); }
   };
 
-  const inputClass =
-    "w-full bg-gray-900/80 border border-green-900/50 rounded-lg px-4 py-2.5 text-green-100 placeholder-green-900 font-mono text-sm focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 transition";
-  const labelClass = "block text-xs font-mono font-medium text-green-600 uppercase tracking-widest mb-1.5";
+  const handleGuest = async () => {
+    setServerError(""); setLoading(true);
+    try {
+      const r = await authApi.loginAsGuest(); login(r); navigate("/dashboard");
+    } catch {
+      setServerError("Eroare la conectarea ca vizitator.");
+    } finally { setLoading(false); }
+  };
+
+  const inputCls =
+    "w-full bg-[#fbf6ec]/80 border border-emerald-300/60 rounded-sm px-3 py-2.5 text-stone-900 placeholder-stone-400 font-mono text-sm focus:outline-none focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600 transition";
+  const labelCls = "block text-[10px] font-mono font-medium text-emerald-700 uppercase tracking-[0.3em] mb-1.5";
 
   return (
-    <div className="min-h-screen bg-gray-950 flex items-center justify-center px-4 overflow-hidden relative">
+    <div className="min-h-screen bg-[#f4efe6] text-stone-900 relative overflow-hidden">
+      <CartoBackground />
 
-      {/* ── Background layers ── */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,#0a2510_0%,#030712_70%)]" />
-      <div className="absolute inset-0 pointer-events-none">
-        <WorldMapBg />
-      </div>
-      {/* Scan lines */}
-      <div className="absolute inset-0 bg-[repeating-linear-gradient(0deg,transparent,transparent_2px,rgba(0,255,100,0.012)_2px,rgba(0,255,100,0.012)_4px)] pointer-events-none" />
-
-      {/* Floating coordinates */}
-      <CoordLabel top="8%"  left="5%"  text="51°30'N 00°07'W" />
-      <CoordLabel top="12%" left="72%" text="35°41'N 139°41'E" />
-      <CoordLabel top="78%" left="8%"  text="23°32'S 46°38'W" />
-      <CoordLabel top="82%" left="68%" text="33°51'S 151°12'E" />
-      <CoordLabel top="45%" left="2%"  text="48°51'N 02°21'E" />
-      <CoordLabel top="20%" left="88%" text="55°45'N 37°37'E" />
-      <CoordLabel top="65%" left="50%" text="01°21'N 103°49'E" />
-
-      {/* ── Card ── */}
-      <div className="relative z-10 w-full max-w-md">
-
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-3 mb-3">
-            <div className={`w-9 h-9 rounded-full border-2 ${pulse ? "border-green-400" : "border-green-700"} transition-colors duration-1000 flex items-center justify-center`}>
-              <div className={`w-2.5 h-2.5 rounded-full ${pulse ? "bg-green-400" : "bg-green-700"} transition-colors duration-1000`} />
-            </div>
-            <h1 className="text-green-400 font-bold tracking-[0.25em] text-xl uppercase font-mono">
-              GeoAtlas
-            </h1>
+      {/* ── Top status strip ── */}
+      <div className="relative z-20 border-b border-emerald-300/50 bg-[#f4efe6]/85 backdrop-blur-md font-mono">
+        <div className="px-4 sm:px-6 py-2.5 flex items-center justify-between text-[10px] tracking-[0.3em] uppercase text-emerald-700">
+          <div className="flex items-center gap-3">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span>Geo·Atlas · Boarding Terminal</span>
           </div>
-          <p className="text-green-500 font-mono text-xs tracking-[0.3em] uppercase">
-            ◈ Atlas Geografic Digital ◈
-          </p>
+          <div className="hidden sm:flex items-center gap-6">
+            <span>POS · 44°26'N · 26°06'E</span>
+            <span className="text-emerald-800 tabular-nums">{utc}</span>
+            <span>SECT EU/RO</span>
+          </div>
         </div>
+        <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-emerald-500/60 to-transparent" />
+      </div>
 
-        {/* Form card */}
-        <div className="bg-gray-950/80 backdrop-blur-md rounded-2xl border border-green-900/50 overflow-hidden shadow-2xl shadow-green-950/40">
+      {/* ── Main 2-column grid ── */}
+      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 pt-10 pb-16 grid grid-cols-12 gap-6 lg:gap-10 items-start">
 
-          {/* Tabs */}
-          <div className="flex border-b border-green-900/40">
-            <button
-              onClick={() => { setTab("login"); setServerError(""); }}
-              className={`flex-1 py-3.5 text-xs font-mono font-semibold uppercase tracking-widest transition-all duration-300 ${
-                tab === "login"
-                  ? "bg-green-500/10 text-green-400 border-b-2 border-green-500"
-                  : "text-green-800 hover:text-green-600 hover:bg-green-950/40"
-              }`}
-            >
-              ⬡ Conectare
-            </button>
-            <button
-              onClick={() => { setTab("register"); setServerError(""); }}
-              className={`flex-1 py-3.5 text-xs font-mono font-semibold uppercase tracking-widest transition-all duration-300 ${
-                tab === "register"
-                  ? "bg-green-500/10 text-green-400 border-b-2 border-green-500"
-                  : "text-green-800 hover:text-green-600 hover:bg-green-950/40"
-              }`}
-            >
-              ⬡ Creare Cont
-            </button>
-          </div>
-
-          <div className="p-7">
-            {/* Server error */}
-            {serverError && (
-              <div className="mb-5 p-3 bg-red-950/60 border border-red-800/60 rounded-lg text-red-400 text-xs font-mono">
-                ⚠ {serverError}
+        {/* ─── LEFT COLUMN — Brand + console intro ─── */}
+        <aside className="col-span-12 lg:col-span-7">
+          <div className="font-mono">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="relative w-12 h-12">
+                <svg viewBox="0 0 48 48" className="absolute inset-0 geo-spin-slow text-emerald-700/60">
+                  <circle cx="24" cy="24" r="21" fill="none" stroke="currentColor" strokeWidth="0.7" strokeDasharray="3 4" />
+                </svg>
+                <svg viewBox="0 0 48 48" className="absolute inset-0 geo-spin-slower text-emerald-700/40">
+                  <circle cx="24" cy="24" r="15" fill="none" stroke="currentColor" strokeWidth="0.5" strokeDasharray="1 5" />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="w-2 h-2 rounded-full bg-emerald-600 shadow-[0_0_10px_rgba(25,107,70,0.5)]" />
+                </div>
               </div>
-            )}
+              <div className="leading-tight">
+                <div className="text-emerald-700 text-sm tracking-[0.3em] font-semibold">GEO·ATLAS</div>
+                <div className="text-emerald-700/70 text-[10px] tracking-[0.4em] uppercase">Cartographic Console v2</div>
+              </div>
+            </div>
 
-            {/* ── LOGIN ── */}
-            {tab === "login" && (
-              <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-5">
-                <div>
-                  <label className={labelClass}>Nume utilizator</label>
-                  <input {...loginForm.register("username")} placeholder="username" className={inputClass} />
-                  {loginForm.formState.errors.username && (
-                    <p className="mt-1.5 text-xs text-red-400 font-mono">↳ {loginForm.formState.errors.username.message}</p>
-                  )}
-                </div>
-                <div>
-                  <label className={labelClass}>Parolă</label>
-                  <input {...loginForm.register("password")} type="password" placeholder="••••••••" className={inputClass} />
-                  {loginForm.formState.errors.password && (
-                    <p className="mt-1.5 text-xs text-red-400 font-mono">↳ {loginForm.formState.errors.password.message}</p>
-                  )}
-                </div>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-green-500/10 hover:bg-green-500/20 border border-green-500/40 hover:border-green-400 disabled:opacity-50 text-green-300 font-mono font-semibold text-sm py-2.5 rounded-lg transition-all duration-300 hover:shadow-lg hover:shadow-green-900/30 uppercase tracking-widest"
-                >
-                  {loading ? "◌ Se conectează..." : "→ Conectare"}
-                </button>
-                <p className="text-center text-xs text-green-900 font-mono">
-                  Nu ai cont?{" "}
-                  <button type="button" onClick={() => setTab("register")} className="text-green-600 hover:text-green-400 transition-colors underline underline-offset-2">
-                    Creează unul
-                  </button>
-                </p>
-              </form>
-            )}
+            <div className="text-[10px] tracking-[0.4em] text-emerald-700 uppercase mb-3">
+              ◈ acces autorizat · canal sigur ◈
+            </div>
+            <h1 className="text-[44px] sm:text-[56px] md:text-[72px] leading-[0.95] tracking-tight font-semibold text-stone-900">
+              <span className="text-emerald-700">Atlasul</span>
+              <br />tau astepta.
+            </h1>
+            <p className="mt-5 max-w-md text-stone-600 text-sm leading-relaxed">
+              Conecteaza-te la consola cartografica · 195 state suverane · 510M km² ·
+              telemetrie live · joc global.
+            </p>
 
-            {/* ── REGISTER ── */}
-            {tab === "register" && (
-              <form onSubmit={registerForm.handleSubmit(handleRegister)} className="space-y-4">
-                <div>
-                  <label className={labelClass}>Nume utilizator</label>
-                  <input {...registerForm.register("username")} placeholder="username" className={inputClass} />
-                  {registerForm.formState.errors.username && (
-                    <p className="mt-1.5 text-xs text-red-400 font-mono">↳ {registerForm.formState.errors.username.message}</p>
-                  )}
-                </div>
-                <div>
-                  <label className={labelClass}>Parolă</label>
-                  <input {...registerForm.register("password")} type="password" placeholder="••••••••" className={inputClass} />
-                  {registerForm.formState.errors.password && (
-                    <p className="mt-1.5 text-xs text-red-400 font-mono">↳ {registerForm.formState.errors.password.message}</p>
-                  )}
-                </div>
-                <div>
-                  <label className={labelClass}>Confirmare parolă</label>
-                  <input {...registerForm.register("confirmPassword")} type="password" placeholder="••••••••" className={inputClass} />
-                  {registerForm.formState.errors.confirmPassword && (
-                    <p className="mt-1.5 text-xs text-red-400 font-mono">↳ {registerForm.formState.errors.confirmPassword.message}</p>
-                  )}
-                </div>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-green-500/10 hover:bg-green-500/20 border border-green-500/40 hover:border-green-400 disabled:opacity-50 text-green-300 font-mono font-semibold text-sm py-2.5 rounded-lg transition-all duration-300 hover:shadow-lg hover:shadow-green-900/30 uppercase tracking-widest mt-1"
-                >
-                  {loading ? "◌ Se creează contul..." : "→ Creare Cont"}
-                </button>
-                <p className="text-center text-xs text-green-900 font-mono">
-                  Ai deja cont?{" "}
-                  <button type="button" onClick={() => setTab("login")} className="text-green-600 hover:text-green-400 transition-colors underline underline-offset-2">
-                    Conectează-te
-                  </button>
-                </p>
-              </form>
-            )}
+            {/* Console intro */}
+            <div className="mt-8 max-w-md text-emerald-800/90 text-[12px] leading-relaxed">
+              <div>{greet}<span className="geo-caret" /></div>
+            </div>
 
-            <button
-              onClick={async () => {
-                setLoading(true);
-                setServerError("");
-                try {
-                  const data = await authApi.loginAsGuest();
-                  login(data);
-                  navigate("/dashboard");
-                } catch (e: any) {
-                  setServerError("Eroare la conectarea ca vizitator.");
-                } finally {
-                  setLoading(false);
-                }
-              }}
-              disabled={loading}
-              type="button"
-              className="w-full mt-4 bg-transparent hover:bg-green-500/10 border border-green-900/50 hover:border-green-500/40 disabled:opacity-50 text-green-600 hover:text-green-400 font-mono font-semibold text-xs py-2 rounded-lg transition-all duration-300 uppercase tracking-widest"
-            >
-              ⯈ Continuă ca vizitator
-            </button>
+            {/* Side stats */}
+            <div className="mt-10 grid grid-cols-3 gap-3 max-w-md">
+              <SideStat k="Sesiuni" v="14.2k" />
+              <SideStat k="Latency" v="28 ms" />
+              <SideStat k="Uptime" v="99.97%" />
+            </div>
+
+            {/* Coordinate strip */}
+            <div className="mt-10 hidden lg:flex flex-wrap gap-x-6 gap-y-2 text-[10px] tracking-[0.3em] text-emerald-700/70 uppercase">
+              <span>· London 51°30'N</span>
+              <span>· Tokyo 35°41'N</span>
+              <span>· São Paulo 23°32'S</span>
+              <span>· Sydney 33°51'S</span>
+              <span>· Paris 48°51'N</span>
+            </div>
           </div>
-        </div>
+        </aside>
 
-        {/* Bottom label */}
-        <p className="text-center text-green-900 font-mono text-xs mt-5 tracking-wider">
-          Proiecție: Mercator · Datum: WGS84 · v1.0
-        </p>
+        {/* ─── RIGHT COLUMN — Auth panel ─── */}
+        <section className="col-span-12 lg:col-span-5">
+          <div className="relative bg-[#fbf6ec]/85 backdrop-blur-md border border-emerald-300/60 rounded-sm overflow-hidden shadow-[0_30px_80px_-30px_rgba(25,107,70,0.25)]"
+               style={{ boxShadow: "inset 0 0 0 1px rgba(25,107,70,0.06), 0 30px 80px -30px rgba(25,107,70,0.25)" }}>
+            <GraticuleTick pos="tl" /><GraticuleTick pos="tr" /><GraticuleTick pos="bl" /><GraticuleTick pos="br" />
+
+            {/* Header label */}
+            <div className="absolute -top-2 left-5 px-2 bg-[#fbf6ec] text-[10px] font-mono tracking-[0.4em] uppercase text-emerald-700">
+              CRED · 01
+            </div>
+            <div className="absolute -top-2 right-5 px-2 bg-[#fbf6ec] text-[10px] font-mono tracking-widest text-emerald-700/70">
+              44°N · 26°E
+            </div>
+
+            {/* Tabs */}
+            <div className="grid grid-cols-2 border-b border-emerald-300/50 font-mono">
+              {(["login", "register"] as const).map((k) => (
+                <button
+                  key={k}
+                  onClick={() => { setTab(k); setServerError(""); }}
+                  className={`relative py-4 text-[11px] font-semibold uppercase tracking-[0.3em] transition-colors ${
+                    tab === k
+                      ? "text-emerald-700 bg-emerald-100/40"
+                      : "text-stone-500 hover:text-emerald-700 hover:bg-emerald-100/20"
+                  }`}
+                >
+                  {k === "login" ? "› Conectare" : "+ Cont Nou"}
+                  {tab === k && <span className="absolute inset-x-0 bottom-0 h-px bg-emerald-600" />}
+                </button>
+              ))}
+            </div>
+
+            <div className="p-6 sm:p-7">
+              {serverError && (
+                <div className="mb-5 p-3 bg-red-50/80 border border-red-300 rounded-sm text-red-700 text-[11px] font-mono tracking-wider">
+                  ⚠ {serverError}
+                </div>
+              )}
+
+              {tab === "login" && (
+                <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-5">
+                  <Field label="Nume utilizator" error={loginForm.formState.errors.username?.message}>
+                    <input {...loginForm.register("username")} placeholder="username" className={inputCls} />
+                  </Field>
+                  <Field label="Parola" error={loginForm.formState.errors.password?.message}>
+                    <input {...loginForm.register("password")} type="password" placeholder="••••••••" className={inputCls} />
+                  </Field>
+                  <SubmitBtn loading={loading}>Conectare ↩</SubmitBtn>
+                  <p className="text-center text-[11px] text-stone-500 font-mono">
+                    Nu ai cont?{" "}
+                    <button type="button" onClick={() => setTab("register")} className="text-emerald-700 hover:text-emerald-800 underline underline-offset-2">
+                      Creeaza unul
+                    </button>
+                  </p>
+                </form>
+              )}
+
+              {tab === "register" && (
+                <form onSubmit={registerForm.handleSubmit(handleRegister)} className="space-y-4">
+                  <Field label="Nume utilizator" error={registerForm.formState.errors.username?.message}>
+                    <input {...registerForm.register("username")} placeholder="username" className={inputCls} />
+                  </Field>
+                  <Field label="Parola" error={registerForm.formState.errors.password?.message}>
+                    <input {...registerForm.register("password")} type="password" placeholder="••••••••" className={inputCls} />
+                  </Field>
+                  <Field label="Confirmare parola" error={registerForm.formState.errors.confirmPassword?.message}>
+                    <input {...registerForm.register("confirmPassword")} type="password" placeholder="••••••••" className={inputCls} />
+                  </Field>
+                  <SubmitBtn loading={loading}>Creare Cont ↩</SubmitBtn>
+                  <p className="text-center text-[11px] text-stone-500 font-mono">
+                    Ai deja cont?{" "}
+                    <button type="button" onClick={() => setTab("login")} className="text-emerald-700 hover:text-emerald-800 underline underline-offset-2">
+                      Conecteaza-te
+                    </button>
+                  </p>
+                </form>
+              )}
+
+              {/* Divider */}
+              <div className="my-6 flex items-center gap-3 font-mono">
+                <div className="flex-1 h-px bg-emerald-300/60" />
+                <span className="text-[10px] tracking-[0.4em] text-emerald-700/70 uppercase">sau</span>
+                <div className="flex-1 h-px bg-emerald-300/60" />
+              </div>
+
+              <button
+                type="button" onClick={handleGuest} disabled={loading}
+                className="w-full bg-[#f4efe6]/80 hover:bg-emerald-50 border border-emerald-300/60 hover:border-emerald-600 disabled:opacity-50 text-emerald-700 hover:text-emerald-800 font-mono font-semibold text-[11px] py-3 rounded-sm transition-all uppercase tracking-[0.3em]"
+              >
+                ⯈ Continua ca vizitator
+              </button>
+            </div>
+
+            {/* Footer label inside card */}
+            <div className="px-7 pb-5 -mt-1 flex items-center justify-between text-[9px] font-mono tracking-[0.3em] uppercase text-emerald-700/70">
+              <span>jwt · hs256</span>
+              <span>session 24h</span>
+            </div>
+          </div>
+
+          {/* Below-card meta */}
+          <p className="text-center text-stone-500 font-mono text-[10px] mt-5 tracking-[0.3em] uppercase">
+            Mercator · WGS84 · v1.0
+          </p>
+        </section>
       </div>
+    </div>
+  );
+}
+
+/* ── helpers ── */
+function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label className="block text-[10px] font-mono font-medium text-emerald-700 uppercase tracking-[0.3em] mb-1.5">{label}</label>
+      {children}
+      {error && <p className="mt-1.5 text-[11px] text-red-700 font-mono">↳ {error}</p>}
+    </div>
+  );
+}
+function SubmitBtn({ loading, children }: { loading: boolean; children: React.ReactNode }) {
+  return (
+    <button
+      type="submit" disabled={loading}
+      className="w-full bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-stone-50 font-mono font-semibold text-[12px] py-3 rounded-sm transition-all uppercase tracking-[0.3em] shadow-[0_8px_24px_-12px_rgba(25,107,70,0.6)]"
+    >
+      {loading ? "◌ se proceseaza..." : children}
+    </button>
+  );
+}
+function SideStat({ k, v }: { k: string; v: string }) {
+  return (
+    <div className="border border-emerald-300/50 bg-[#fbf6ec]/60 px-3 py-2.5">
+      <div className="text-[9px] tracking-[0.3em] text-emerald-700/70 uppercase">{k}</div>
+      <div className="text-emerald-800 text-[16px] tabular-nums mt-0.5">{v}</div>
     </div>
   );
 }

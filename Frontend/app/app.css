@@ -1,5 +1,58 @@
 @import "tailwindcss";
 
+/* ── Cartographic console animations (light parchment palette) ── */
+@keyframes geo-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes geo-spin-rev { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
+@keyframes geo-drift {
+  0%   { transform: translate(0,0); }
+  50%  { transform: translate(40px,-30px); }
+  100% { transform: translate(0,0); }
+}
+@keyframes geo-scan {
+  0%   { top: -20%; }
+  100% { top: 120%; }
+}
+@keyframes geo-rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes geo-caret-blink {
+  0%, 49%   { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+@keyframes geo-ping {
+  0%   { transform: scale(0.6); opacity: 1; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+
+.geo-spin-slow   { animation: geo-spin 24s linear infinite; transform-origin: center; }
+.geo-spin-slower { animation: geo-spin-rev 60s linear infinite; transform-origin: center; }
+.geo-scan {
+  animation: geo-scan 9s linear infinite;
+  pointer-events: none;
+}
+.geo-rise {
+  animation: geo-rise 0.6s ease-out both;
+}
+.geo-caret {
+  display: inline-block;
+  width: 0.55em;
+  height: 1em;
+  margin-left: 2px;
+  background: currentColor;
+  vertical-align: -0.15em;
+  animation: geo-caret-blink 1s steps(2) infinite;
+}
+.geo-dot {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: rgba(25, 107, 70, 0.55);
+  box-shadow: 0 0 6px rgba(25, 107, 70, 0.35);
+}
+
+
 /* Mobile touch improvements */
 @media (max-width: 640px) {
   /* Prevent pull-to-refresh on modals */

@@ -54,7 +54,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         {notifications.map((notif) => (
           <div
             key={notif.timestamp}
-            className="bg-white border-l-4 border-blue-500 shadow-md p-4 rounded min-w-[250px] cursor-pointer"
+            className="relative bg-[#fbf6ec] border border-emerald-300/60 shadow-[0_18px_40px_-18px_rgba(25,107,70,0.35)] p-4 rounded-sm min-w-[280px] cursor-pointer hover:border-emerald-500 transition-all font-mono group"
             onClick={() => {
               removeNotification(notif.timestamp);
               if (notif.type === "CHAT") {
@@ -66,8 +66,20 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
               }
             }}
           >
-            <div className="text-sm font-bold text-gray-800">{notif.title}</div>
-            <div className="text-sm text-gray-600 mt-1">{notif.message}</div>
+            <span className="absolute left-0 top-0 bottom-0 w-[3px] bg-emerald-600" />
+            <div className="absolute -top-2 left-3 px-1.5 bg-[#fbf6ec] text-[9px] tracking-[0.4em] uppercase text-emerald-700 font-semibold">
+              {notif.type === "CHAT" ? "MSG·NEW" : notif.type === "FAVORITE" ? "FAV·NEW" : "SYS·NEW"}
+            </div>
+            <div className="flex items-start justify-between gap-3 pl-2">
+              <div className="text-[13px] font-semibold text-stone-900 tracking-wide">{notif.title}</div>
+              <span className="text-[9px] tracking-[0.3em] uppercase text-emerald-700/70 tabular-nums shrink-0">
+                {new Date(notif.timestamp).toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" })}
+              </span>
+            </div>
+            <div className="text-[12px] text-stone-600 mt-1 leading-relaxed pl-2">{notif.message}</div>
+            <div className="mt-2 pl-2 text-[9px] tracking-[0.3em] uppercase text-emerald-700/60 group-hover:text-emerald-700 transition">
+              ↩ click pentru a deschide
+            </div>
           </div>
         ))}
       </div>

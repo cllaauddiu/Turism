@@ -113,7 +113,7 @@ export default function SupportChat() {
 
   if (connecting) {
     return (
-      <div className="flex-1 flex items-center justify-center text-cyan-700 font-mono text-sm">
+      <div className="flex-1 flex items-center justify-center text-stone-500 font-mono text-sm">
         Se conecteaza la suport...
       </div>
     );
@@ -121,7 +121,7 @@ export default function SupportChat() {
 
   if (error) {
     return (
-      <div className="flex-1 flex items-center justify-center text-red-400 font-mono text-sm p-6 text-center">
+      <div className="flex-1 flex items-center justify-center text-red-700 font-mono text-sm p-6 text-center">
         {error}
       </div>
     );
@@ -129,13 +129,14 @@ export default function SupportChat() {
 
   if (!session) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-4 p-6 text-center">
-        <div className="text-cyan-200 font-mono text-sm max-w-sm">
+      <div className="flex-1 flex flex-col items-center justify-center gap-5 p-6 text-center">
+        <div className="text-[10px] tracking-[0.4em] uppercase text-emerald-700 font-mono">◈ canal suport · admin online</div>
+        <div className="text-emerald-700 font-mono text-sm max-w-sm">
           Vorbeste direct cu un administrator GeoAtlas. Trimite o intrebare si un admin online iti va raspunde in timp real.
         </div>
         <button
           onClick={startConversation}
-          className="px-5 py-2.5 rounded-lg border border-cyan-600/60 bg-cyan-900/20 text-cyan-200 hover:bg-cyan-900/40 font-mono text-sm tracking-wider"
+          className="px-5 py-2.5 rounded-sm border border-emerald-500/60 bg-emerald-100/40 text-emerald-700 hover:bg-emerald-700 hover:text-stone-50 font-mono text-[11px] tracking-[0.3em] uppercase font-semibold transition-all"
         >
           Incepe conversatia
         </button>
@@ -147,15 +148,15 @@ export default function SupportChat() {
 
   return (
     <>
-      <div className="px-4 py-2 border-b border-cyan-900/40 bg-gray-950/80 flex items-center justify-between">
-        <div className="font-mono text-xs text-cyan-700">
-          Sesiune <span className="text-cyan-300">#{session.id.slice(0, 8)}</span>
-          {isClosed && <span className="ml-2 text-red-400">(inchisa)</span>}
+      <div className="px-4 py-2 border-b border-emerald-200/40 bg-stone-100/80 flex items-center justify-between">
+        <div className="font-mono text-xs text-stone-500">
+          Sesiune <span className="text-emerald-700">#{session.id.slice(0, 8)}</span>
+          {isClosed && <span className="ml-2 text-red-700">(inchisa)</span>}
         </div>
         {!isClosed && (
           <button
             onClick={closeConversation}
-            className="text-xs text-gray-500 hover:text-red-400 font-mono"
+            className="text-xs text-stone-500 hover:text-red-700 font-mono"
           >
             inchide
           </button>
@@ -164,7 +165,7 @@ export default function SupportChat() {
 
       <div ref={listRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
         {messages.length === 0 && (
-          <div className="text-center text-cyan-800 font-mono text-xs py-8">
+          <div className="text-center text-stone-500 font-mono text-xs py-8">
             Astepti raspunsul unui administrator. Poti scrie deja primul mesaj.
           </div>
         )}
@@ -173,13 +174,13 @@ export default function SupportChat() {
           return (
             <div
               key={m.id}
-              className={`max-w-[85%] rounded-xl border px-3 py-2 font-mono text-sm ${
+              className={`max-w-[85%] rounded-sm border px-3 py-2 font-mono text-sm ${
                 mine
-                  ? "ml-auto bg-cyan-900/30 border-cyan-700/50 text-cyan-100"
-                  : "mr-auto bg-gray-900/90 border-cyan-900/40 text-gray-200"
+                  ? "ml-auto bg-emerald-100/30 border-emerald-400/50 text-emerald-800"
+                  : "mr-auto bg-stone-50/90 border-emerald-200/40 text-stone-800"
               }`}
             >
-              <div className="text-[10px] mb-1 text-cyan-700">
+              <div className="text-[10px] mb-1 text-stone-500">
                 {m.senderRole === "ADMIN" ? "Admin" : "Tu"} · {new Date(m.createdAt).toLocaleTimeString()}
               </div>
               <div className="whitespace-pre-wrap leading-relaxed">{m.content}</div>
@@ -189,7 +190,7 @@ export default function SupportChat() {
       </div>
 
       {!isClosed && (
-        <div className="border-t border-cyan-900/40 bg-gray-950/90 p-3">
+        <div className="border-t border-emerald-200/40 bg-stone-100/90 p-3">
           <div className="flex items-center gap-2">
             <textarea
               value={input}
@@ -201,12 +202,12 @@ export default function SupportChat() {
                 }
               }}
               placeholder="Scrie un mesaj catre admin..."
-              className="flex-1 resize-none h-12 sm:h-20 rounded-lg bg-gray-900 border border-cyan-900/40 text-gray-100 font-mono text-sm px-3 py-2 outline-none focus:border-cyan-500"
+              className="flex-1 resize-none h-12 sm:h-20 rounded-sm bg-stone-50 border border-emerald-200/40 text-stone-900 font-mono text-sm px-3 py-2 outline-none focus:border-emerald-600"
             />
             <button
               onClick={sendMessage}
               disabled={!input.trim()}
-              className="h-12 sm:h-20 px-3 sm:px-4 rounded-lg border border-cyan-600/50 text-cyan-300 hover:bg-cyan-900/20 disabled:opacity-40 disabled:cursor-not-allowed font-mono text-sm"
+              className="h-12 sm:h-20 px-3 sm:px-4 rounded-sm border border-emerald-500/50 text-emerald-700 hover:bg-emerald-100/20 disabled:opacity-40 disabled:cursor-not-allowed font-mono text-sm"
             >
               Trimite
             </button>
