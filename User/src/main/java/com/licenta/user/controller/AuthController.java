@@ -3,7 +3,6 @@ package com.licenta.user.controller;
 import com.licenta.user.dto.AuthResponse;
 import com.licenta.user.dto.LoginRequest;
 import com.licenta.user.dto.RegisterRequest;
-import com.licenta.user.dto.UserDTO;
 import com.licenta.user.service.AuthService;
 import com.licenta.user.service.UserService;
 import jakarta.validation.Valid;
@@ -25,12 +24,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
-        userService.createUser(request);
-        // Auto-login după înregistrare — returnează token direct
-        LoginRequest loginRequest = new LoginRequest();
-        loginRequest.setUsername(request.getUsername());
-        loginRequest.setPassword(request.getPassword());
-        return ResponseEntity.status(HttpStatus.CREATED).body(authService.login(loginRequest));
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.register(request));
     }
 
     @PostMapping("/login")

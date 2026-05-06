@@ -27,11 +27,12 @@ public class DataInitializer implements CommandLineRunner {
         if (!userRepository.existsByUsername("admin")) {
             User admin = User.builder()
                     .username("admin")
+                    .email("admin@geoatlas.ro")
                     .password(passwordEncoder.encode("admin123"))
                     .role(Role.ADMIN)
                     .build();
             userRepository.save(admin);
-            log.info("Default admin user created — username: admin, password: admin123");
+            log.info("Default admin user created — username: admin, email: admin@geoatlas.ro, password: admin123");
         }
     }
 }

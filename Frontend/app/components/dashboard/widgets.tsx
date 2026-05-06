@@ -100,8 +100,7 @@ export function MissionHeader({
             Coordonate · 44°26'N · 26°06'E · Sector EU/RO
           </div>
           <h1 className="text-[36px] sm:text-[52px] md:text-[64px] leading-[0.95] tracking-tight font-semibold text-stone-900 font-mono">
-            <span className="text-emerald-700">Atlas</span> in timp real.<br />
-            Lumea ca terminal.
+            <span className="text-emerald-700">Atlas</span> in timp real.
           </h1>
           <div className="mt-5 max-w-xl text-emerald-800/80 text-sm leading-relaxed font-mono">
             <div>{greet}<span className="geo-caret" /></div>
@@ -160,69 +159,75 @@ function FeaturePaint({ kind }: { kind: PaintKind }) {
     <svg viewBox="0 0 200 120" className={common}>
       <defs>
         <radialGradient id="rg" cx="50%" cy="60%" r="60%">
-          <stop offset="0%" stopColor="rgba(74,222,128,0.4)" />
-          <stop offset="100%" stopColor="rgba(74,222,128,0)" />
+          <stop offset="0%" stopColor="rgba(22,101,52,0.55)" />
+          <stop offset="100%" stopColor="rgba(22,101,52,0)" />
         </radialGradient>
       </defs>
-      {[20, 40, 60, 80].map(r => <circle key={r} cx="100" cy="72" r={r} fill="none" stroke="rgba(74,222,128,0.18)" strokeWidth="0.6" />)}
-      <line x1="20" y1="72" x2="180" y2="72" stroke="rgba(74,222,128,0.18)" strokeWidth="0.5" />
-      <line x1="100" y1="0" x2="100" y2="120" stroke="rgba(74,222,128,0.18)" strokeWidth="0.5" />
+      {[20, 40, 60, 80].map(r => <circle key={r} cx="100" cy="72" r={r} fill="none" stroke="rgba(22,101,52,0.35)" strokeWidth="0.8" />)}
+      <line x1="20" y1="72" x2="180" y2="72" stroke="rgba(22,101,52,0.35)" strokeWidth="0.6" />
+      <line x1="100" y1="0" x2="100" y2="120" stroke="rgba(22,101,52,0.35)" strokeWidth="0.6" />
       <g style={{ transformOrigin: "100px 72px", animation: "geo-spin 6s linear infinite" }}>
         <path d="M100 72 L180 72 A80 80 0 0 0 145 8 Z" fill="url(#rg)" />
       </g>
-      <circle cx="135" cy="50" r="2" fill="#196b46" />
-      <circle cx="60" cy="90" r="1.5" fill="#196b46" opacity="0.7" />
+      <circle cx="135" cy="50" r="3" fill="#166534" />
+      <circle cx="60" cy="90" r="2.5" fill="#166534" opacity="0.8" />
     </svg>
   );
   if (kind === "fog") return (
     <svg viewBox="0 0 200 120" className={common}>
-      <g fill="none" stroke="rgba(74,222,128,0.25)" strokeWidth="0.6">
-        {Array.from({ length: 8 }).map((_, i) => <circle key={i} cx={20 + i * 22} cy={(i % 2) ? 40 : 80} r="6" />)}
+      <g fill="none" stroke="rgba(22,101,52,0.45)" strokeWidth="1">
+        {Array.from({ length: 8 }).map((_, i) => <circle key={i} cx={20 + i * 22} cy={(i % 2) ? 40 : 80} r="7" />)}
       </g>
       <g>
-        {Array.from({ length: 8 }).map((_, i) => <circle key={i} cx={20 + i * 22} cy={(i % 2) ? 40 : 80} r="4" fill={i < 3 ? "#196b46" : "rgba(74,222,128,0.15)"} opacity={i < 3 ? 0.9 : 0.5} />)}
+        {Array.from({ length: 8 }).map((_, i) => (
+          <circle key={i} cx={20 + i * 22} cy={(i % 2) ? 40 : 80} r="5"
+            fill={i < 3 ? "#166534" : "rgba(22,101,52,0.2)"}
+            opacity={i < 3 ? 1 : 0.7}
+          />
+        ))}
       </g>
     </svg>
   );
   if (kind === "compass") return (
     <svg viewBox="0 0 200 120" className={common}>
       <g transform="translate(100 60)">
-        <circle r="40" fill="none" stroke="rgba(74,222,128,0.25)" strokeWidth="0.6" />
-        <circle r="30" fill="none" stroke="rgba(74,222,128,0.18)" strokeWidth="0.5" />
+        <circle r="40" fill="none" stroke="rgba(22,101,52,0.45)" strokeWidth="1" />
+        <circle r="30" fill="none" stroke="rgba(22,101,52,0.3)" strokeWidth="0.7" />
+        <circle r="20" fill="none" stroke="rgba(22,101,52,0.2)" strokeWidth="0.5" />
         <g style={{ animation: "geo-spin 30s linear infinite" }}>
-          <polygon points="0,-40 -4,0 0,-12 4,0" fill="#196b46" />
-          <polygon points="0,40 -3,0 0,8 3,0" fill="rgba(74,222,128,0.4)" />
+          <polygon points="0,-40 -5,0 0,-14 5,0" fill="#166534" />
+          <polygon points="0,40 -4,0 0,10 4,0" fill="rgba(22,101,52,0.5)" />
         </g>
       </g>
     </svg>
   );
   if (kind === "chart") return (
     <svg viewBox="0 0 200 120" className={common} preserveAspectRatio="none">
-      <g stroke="rgba(74,222,128,0.18)" strokeWidth="0.5">
+      <g stroke="rgba(22,101,52,0.3)" strokeWidth="0.7">
         {[24, 48, 72, 96].map(y => <line key={y} x1="0" x2="200" y1={y} y2={y} />)}
       </g>
-      <polyline fill="none" stroke="#196b46" strokeWidth="1.5" points="0,80 20,72 40,76 60,55 80,60 100,40 120,48 140,30 160,38 180,22 200,28" />
-      <polyline fill="none" stroke="rgba(74,222,128,0.4)" strokeWidth="1" points="0,90 20,84 40,88 60,72 80,76 100,58 120,66 140,52 160,58 180,46 200,52" />
+      <polyline fill="none" stroke="#166534" strokeWidth="2" points="0,80 20,72 40,76 60,55 80,60 100,40 120,48 140,30 160,38 180,22 200,28" />
+      <polyline fill="none" stroke="rgba(22,101,52,0.5)" strokeWidth="1.4" points="0,90 20,84 40,88 60,72 80,76 100,58 120,66 140,52 160,58 180,46 200,52" />
     </svg>
   );
   if (kind === "chat") return (
     <svg viewBox="0 0 200 120" className={common}>
-      <rect x="10" y="20" width="100" height="22" fill="none" stroke="rgba(74,222,128,0.4)" strokeWidth="0.6" />
-      <text x="14" y="34" fill="rgba(74,222,128,0.8)" fontSize="8" fontFamily="monospace">&gt; cum ajung in tokyo?</text>
-      <rect x="60" y="60" width="130" height="22" fill="none" stroke="rgba(74,222,128,0.25)" strokeWidth="0.6" />
-      <text x="64" y="74" fill="rgba(74,222,128,0.55)" fontSize="8" fontFamily="monospace">&lt; via NRT/HND, 11h45...</text>
-      <rect x="10" y="92" width="80" height="18" fill="none" stroke="rgba(74,222,128,0.4)" strokeWidth="0.6" />
+      <rect x="10" y="20" width="100" height="22" fill="rgba(22,101,52,0.08)" stroke="rgba(22,101,52,0.55)" strokeWidth="0.8" />
+      <text x="14" y="34" fill="#166534" fontSize="8" fontFamily="monospace">&gt; cum ajung in tokyo?</text>
+      <rect x="60" y="58" width="130" height="22" fill="rgba(22,101,52,0.05)" stroke="rgba(22,101,52,0.4)" strokeWidth="0.8" />
+      <text x="64" y="72" fill="rgba(22,101,52,0.75)" fontSize="8" fontFamily="monospace">&lt; via NRT/HND, 11h45...</text>
+      <rect x="10" y="90" width="80" height="18" fill="rgba(22,101,52,0.08)" stroke="rgba(22,101,52,0.55)" strokeWidth="0.8" />
     </svg>
   );
   return (
     <svg viewBox="0 0 200 120" className={common}>
-      <g stroke="rgba(74,222,128,0.3)" fill="none" strokeWidth="0.6">
+      <g stroke="rgba(22,101,52,0.45)" fill="none" strokeWidth="0.8">
         {[10, 22, 34, 46].map(r => <circle key={r} cx="100" cy="60" r={r} />)}
       </g>
-      <line x1="100" y1="20" x2="100" y2="100" stroke="rgba(74,222,128,0.3)" strokeWidth="0.5" />
-      <line x1="60" y1="60" x2="140" y2="60" stroke="rgba(74,222,128,0.3)" strokeWidth="0.5" />
-      <circle cx="100" cy="60" r="2" fill="#196b46" />
-      <circle cx="100" cy="60" r="6" fill="none" stroke="#196b46" strokeWidth="1" style={{ transformOrigin: "100px 60px", animation: "geo-ping 2.4s ease-out infinite" }} />
+      <line x1="100" y1="14" x2="100" y2="106" stroke="rgba(22,101,52,0.4)" strokeWidth="0.7" />
+      <line x1="54" y1="60" x2="146" y2="60" stroke="rgba(22,101,52,0.4)" strokeWidth="0.7" />
+      <circle cx="100" cy="60" r="3" fill="#166534" />
+      <circle cx="100" cy="60" r="8" fill="none" stroke="#166534" strokeWidth="1.2" style={{ transformOrigin: "100px 60px", animation: "geo-ping 2.4s ease-out infinite" }} />
     </svg>
   );
 }
@@ -247,7 +252,7 @@ export function FeatureGrid({ onLaunch }: { onLaunch: (k: FeatureKey) => void })
               </div>
               <div className="relative h-24 mb-4 opacity-90 group-hover:opacity-100">
                 <FeaturePaint kind={f.paint} />
-                <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, transparent 60%, #f4efe6)" }} />
+                <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, transparent 75%, #f4efe6)" }} />
               </div>
               <div className="flex items-end justify-between">
                 <div>

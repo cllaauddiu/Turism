@@ -8,12 +8,13 @@ import { useAuth } from "~/hooks/useAuth";
 import { CartoBackground, GraticuleTick, useTime, pad, useTypewriter } from "~/components/dashboard/atlas";
 
 const loginSchema = z.object({
-  username: z.string().min(3, "Minim 3 caractere"),
+  usernameOrEmail: z.string().min(3, "Minim 3 caractere"),
   password: z.string().min(6, "Minim 6 caractere"),
 });
 
 const registerSchema = z.object({
   username: z.string().min(3, "Minim 3 caractere"),
+  email: z.string().email("Email invalid"),
   password: z.string().min(6, "Minim 6 caractere"),
   confirmPassword: z.string(),
 }).refine((d) => d.password === d.confirmPassword, {
@@ -28,9 +29,11 @@ type RegisterForm = z.infer<typeof registerSchema>;
    AUTH PAGE — Cartographic Boarding Terminal
    ═════════════════════════════════════════════════════════════════════════ */
 export default function AuthPage() {
-  const [tab, setTab] = useState<"login" | "register">("login");
+  const [tab, setTab] = useState<"login" | "register" | "forgot">("login");
   const [serverError, setServerError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotSent, setForgotSent] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -44,7 +47,8 @@ export default function AuthPage() {
   const handleLogin = async (data: LoginForm) => {
     setServerError(""); setLoading(true);
     try {
-      const r = await authApi.login(data); login(r); navigate("/dashboard");
+      const r = await authApi.login({ usernameOrEmail: data.usernameOrEmail, password: data.password });
+      login(r); navigate("/dashboard");
     } catch (e: any) {
       setServerError(e?.response?.data?.message ?? "Credentiale incorecte.");
     } finally { setLoading(false); }
@@ -53,10 +57,22 @@ export default function AuthPage() {
   const handleRegister = async (data: RegisterForm) => {
     setServerError(""); setLoading(true);
     try {
-      const r = await authApi.register({ username: data.username, password: data.password });
+      const r = await authApi.register({ username: data.username, email: data.email, password: data.password });
       login(r); navigate("/dashboard");
     } catch (e: any) {
       setServerError(e?.response?.data?.message ?? "Inregistrare esuata.");
+    } finally { setLoading(false); }
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotEmail.trim()) return;
+    setServerError(""); setLoading(true);
+    try {
+      await authApi.forgotPassword(forgotEmail.trim());
+      setForgotSent(true);
+    } catch {
+      setServerError("Eroare la trimiterea emailului. Încearcă din nou.");
     } finally { setLoading(false); }
   };
 
@@ -171,15 +187,17 @@ export default function AuthPage() {
               {(["login", "register"] as const).map((k) => (
                 <button
                   key={k}
-                  onClick={() => { setTab(k); setServerError(""); }}
+                  onClick={() => { setTab(k); setServerError(""); setForgotSent(false); }}
                   className={`relative py-4 text-[11px] font-semibold uppercase tracking-[0.3em] transition-colors ${
-                    tab === k
+                    (tab === k || (tab === "forgot" && k === "login"))
                       ? "text-emerald-700 bg-emerald-100/40"
                       : "text-stone-500 hover:text-emerald-700 hover:bg-emerald-100/20"
                   }`}
                 >
                   {k === "login" ? "› Conectare" : "+ Cont Nou"}
-                  {tab === k && <span className="absolute inset-x-0 bottom-0 h-px bg-emerald-600" />}
+                  {(tab === k || (tab === "forgot" && k === "login")) && (
+                    <span className="absolute inset-x-0 bottom-0 h-px bg-emerald-600" />
+                  )}
                 </button>
               ))}
             </div>
@@ -193,26 +211,86 @@ export default function AuthPage() {
 
               {tab === "login" && (
                 <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-5">
-                  <Field label="Nume utilizator" error={loginForm.formState.errors.username?.message}>
-                    <input {...loginForm.register("username")} placeholder="username" className={inputCls} />
+                  <Field label="Username sau Email" error={loginForm.formState.errors.usernameOrEmail?.message}>
+                    <input {...loginForm.register("usernameOrEmail")} placeholder="username sau email@exemplu.com" className={inputCls} />
                   </Field>
                   <Field label="Parola" error={loginForm.formState.errors.password?.message}>
                     <input {...loginForm.register("password")} type="password" placeholder="••••••••" className={inputCls} />
                   </Field>
                   <SubmitBtn loading={loading}>Conectare ↩</SubmitBtn>
-                  <p className="text-center text-[11px] text-stone-500 font-mono">
-                    Nu ai cont?{" "}
-                    <button type="button" onClick={() => setTab("register")} className="text-emerald-700 hover:text-emerald-800 underline underline-offset-2">
-                      Creeaza unul
+                  <div className="flex items-center justify-between text-[11px] font-mono">
+                    <p className="text-stone-500">
+                      Nu ai cont?{" "}
+                      <button type="button" onClick={() => setTab("register")} className="text-emerald-700 hover:text-emerald-800 underline underline-offset-2">
+                        Creeaza unul
+                      </button>
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => { setTab("forgot"); setServerError(""); setForgotSent(false); }}
+                      className="text-stone-400 hover:text-emerald-700 underline underline-offset-2 transition-colors"
+                    >
+                      Ai uitat parola?
                     </button>
-                  </p>
+                  </div>
                 </form>
+              )}
+
+              {tab === "forgot" && (
+                <div className="space-y-5">
+                  {forgotSent ? (
+                    <div className="text-center space-y-4">
+                      <div className="text-4xl">📬</div>
+                      <div className="text-emerald-700 font-mono text-sm font-semibold">Email trimis!</div>
+                      <p className="text-stone-500 font-mono text-[11px] leading-relaxed">
+                        Dacă adresa există în sistem, vei primi un email cu un link de resetare valabil <strong>1 oră</strong>.
+                        Verifică și folderul Spam.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => { setTab("login"); setForgotSent(false); setForgotEmail(""); }}
+                        className="text-emerald-700 font-mono text-[11px] underline underline-offset-2 hover:text-emerald-800"
+                      >
+                        ← Înapoi la conectare
+                      </button>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleForgotPassword} className="space-y-5">
+                      <p className="text-stone-500 font-mono text-[11px] leading-relaxed">
+                        Introdu adresa de email asociată contului tău. Vei primi un link de resetare a parolei.
+                      </p>
+                      <Field label="Email" error={undefined}>
+                        <input
+                          type="email"
+                          value={forgotEmail}
+                          onChange={(e) => setForgotEmail(e.target.value)}
+                          placeholder="email@exemplu.com"
+                          className={inputCls}
+                          required
+                        />
+                      </Field>
+                      <SubmitBtn loading={loading}>Trimite link resetare ↩</SubmitBtn>
+                      <p className="text-center text-[11px] font-mono text-stone-400">
+                        <button
+                          type="button"
+                          onClick={() => { setTab("login"); setServerError(""); }}
+                          className="text-emerald-700 hover:text-emerald-800 underline underline-offset-2"
+                        >
+                          ← Înapoi la conectare
+                        </button>
+                      </p>
+                    </form>
+                  )}
+                </div>
               )}
 
               {tab === "register" && (
                 <form onSubmit={registerForm.handleSubmit(handleRegister)} className="space-y-4">
                   <Field label="Nume utilizator" error={registerForm.formState.errors.username?.message}>
                     <input {...registerForm.register("username")} placeholder="username" className={inputCls} />
+                  </Field>
+                  <Field label="Email" error={registerForm.formState.errors.email?.message}>
+                    <input {...registerForm.register("email")} type="email" placeholder="email@exemplu.com" className={inputCls} />
                   </Field>
                   <Field label="Parola" error={registerForm.formState.errors.password?.message}>
                     <input {...registerForm.register("password")} type="password" placeholder="••••••••" className={inputCls} />

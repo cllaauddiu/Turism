@@ -1,11 +1,13 @@
 package com.licenta.user.service;
 
+import com.licenta.user.dto.AuthResponse;
 import com.licenta.user.dto.RegisterRequest;
 import com.licenta.user.dto.UpdateUserRequest;
 import com.licenta.user.dto.UserDTO;
 import com.licenta.user.entity.Role;
 import com.licenta.user.entity.User;
 import com.licenta.user.repository.UserRepository;
+import com.licenta.user.security.JwtService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -17,27 +19,63 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
     }
 
-    public UserDTO createUser(RegisterRequest request) {
+    public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new IllegalArgumentException("Username already exists: " + request.getUsername());
+        }
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new IllegalArgumentException("Email already in use: " + request.getEmail());
         }
 
         Role role = (request.getRole() != null) ? request.getRole() : Role.CLIENT;
 
         User user = User.builder()
                 .username(request.getUsername())
+                .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(role)
                 .build();
 
         User saved = userRepository.save(user);
-        return toDTO(saved);
+
+        java.util.Map<String, Object> claims = new java.util.HashMap<>();
+        claims.put("role", role.name());
+        String token = jwtService.generateToken(claims, saved);
+
+        return AuthResponse.builder()
+                .token(token)
+                .username(saved.getUsername())
+                .email(saved.getEmail())
+                .role(role.name())
+                .build();
+    }
+
+    public UserDTO createUser(RegisterRequest request) {
+        if (userRepository.existsByUsername(request.getUsername())) {
+            throw new IllegalArgumentException("Username already exists: " + request.getUsername());
+        }
+        if (request.getEmail() != null && userRepository.existsByEmail(request.getEmail())) {
+            throw new IllegalArgumentException("Email already in use: " + request.getEmail());
+        }
+
+        Role role = (request.getRole() != null) ? request.getRole() : Role.CLIENT;
+
+        User user = User.builder()
+                .username(request.getUsername())
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .role(role)
+                .build();
+
+        return toDTO(userRepository.save(user));
     }
 
     public List<UserDTO> getAllUsers() {
@@ -47,9 +85,8 @@ public class UserService {
     }
 
     public UserDTO getUserById(Long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + id));
-        return toDTO(user);
+        return toDTO(userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + id)));
     }
 
     public UserDTO updateUser(Long id, UpdateUserRequest request) {
@@ -67,8 +104,7 @@ public class UserService {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
         }
 
-        User updated = userRepository.save(user);
-        return toDTO(updated);
+        return toDTO(userRepository.save(user));
     }
 
     public void deleteUser(Long id) {
@@ -89,6 +125,7 @@ public class UserService {
         return UserDTO.builder()
                 .id(user.getId())
                 .username(user.getUsername())
+                .email(user.getEmail())
                 .role(user.getRole())
                 .build();
     }

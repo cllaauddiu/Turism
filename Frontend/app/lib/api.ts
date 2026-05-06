@@ -39,12 +39,13 @@ api.interceptors.request.use((config) => {
 // ── Auth ──────────────────────────────────────────────────────────────────────
 
 export interface LoginRequest {
-  username: string;
+  usernameOrEmail: string;
   password: string;
 }
 
 export interface RegisterRequest {
   username: string;
+  email: string;
   password: string;
 }
 
@@ -87,6 +88,10 @@ export const authApi = {
     api.post<AuthResponse>("/auth/register", data).then((r) => r.data),
   loginAsGuest: () =>
     api.post<AuthResponse>("/auth/guest").then((r) => r.data),
+  forgotPassword: (email: string) =>
+    api.post<{ message: string }>("/auth/forgot-password", { email }).then((r) => r.data),
+  resetPassword: (token: string, newPassword: string) =>
+    api.post<{ message: string }>("/auth/reset-password", { token, newPassword }).then((r) => r.data),
 };
 
 // ── Users (Admin) ─────────────────────────────────────────────────────────────

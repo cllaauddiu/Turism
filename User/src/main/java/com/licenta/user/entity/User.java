@@ -25,6 +25,9 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String password;
 
+    @Column(unique = true, nullable = true)
+    private String email;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
@@ -35,6 +38,7 @@ public class User implements UserDetails {
         this.id = builder.id;
         this.username = builder.username;
         this.password = builder.password;
+        this.email = builder.email;
         this.role = builder.role;
     }
 
@@ -46,11 +50,13 @@ public class User implements UserDetails {
         private Long id;
         private String username;
         private String password;
+        private String email;
         private Role role;
 
         public Builder id(Long id) { this.id = id; return this; }
         public Builder username(String username) { this.username = username; return this; }
         public Builder password(String password) { this.password = password; return this; }
+        public Builder email(String email) { this.email = email; return this; }
         public Builder role(Role role) { this.role = role; return this; }
 
         public User build() { return new User(this); }
@@ -67,6 +73,9 @@ public class User implements UserDetails {
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
 
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
     public Role getRole() { return role; }
     public void setRole(Role role) { this.role = role; }
 
@@ -75,15 +84,8 @@ public class User implements UserDetails {
         return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 
-    @Override
-    public boolean isAccountNonExpired() { return true; }
-
-    @Override
-    public boolean isAccountNonLocked() { return true; }
-
-    @Override
-    public boolean isCredentialsNonExpired() { return true; }
-
-    @Override
-    public boolean isEnabled() { return true; }
+    @Override public boolean isAccountNonExpired() { return true; }
+    @Override public boolean isAccountNonLocked() { return true; }
+    @Override public boolean isCredentialsNonExpired() { return true; }
+    @Override public boolean isEnabled() { return true; }
 }
