@@ -439,6 +439,14 @@ gamesAxios.interceptors.request.use((config) => {
   return config;
 });
 
+export interface LeaderboardEntry {
+  rank: number;
+  username: string;
+  score: number;
+  unlockedZones: number;
+  lastUnlockedZone: string | null;
+}
+
 export const fogApi = {
   getZones: () =>
     gamesAxios.get<FogZone[]>("/fog/zones").then((r) => r.data),
@@ -448,5 +456,7 @@ export const fogApi = {
     gamesAxios.post<FogUnlockResult>(`/fog/zones/${zoneId}/unlock`, { answer }).then((r) => r.data),
   getProgress: () =>
     gamesAxios.get<FogProgress>("/fog/progress").then((r) => r.data),
+  getLeaderboard: () =>
+    gamesAxios.get<LeaderboardEntry[]>("/fog/leaderboard").then((r) => r.data),
 };
 

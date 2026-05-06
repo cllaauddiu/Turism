@@ -26,6 +26,7 @@ public class FogGameService {
     private final ZoneRepository zoneRepository;
     private final UserZoneProgressRepository progressRepository;
     private final AiClientService aiClientService;
+    private final LeaderboardService leaderboardService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
@@ -174,6 +175,9 @@ public class FogGameService {
             progress.setStatus(ZoneStatus.UNLOCKED);
             progress.setUnlockedAt(LocalDateTime.now());
             progressRepository.save(progress);
+
+            // Broadcast leaderboard actualizat tuturor clientilor conectati
+            leaderboardService.broadcastLeaderboard();
 
             return UnlockResultDTO.builder()
                     .success(true)

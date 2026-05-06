@@ -1,34 +1,11 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import "leaflet/dist/leaflet.css";
-import { fogApi, type FogZone, type FogRiddle, type FogProgress, type FogUnlockResult } from "~/lib/api";
+import { Client } from "@stomp/stompjs";
+import SockJS from "sockjs-client";
+import { fogApi, type FogZone, type FogRiddle, type FogProgress, type FogUnlockResult, type LeaderboardEntry } from "~/lib/api";
 import { useAuth } from "~/hooks/useAuth";
 
-// ── Difficulty badge ──────────────────────────────────────────────────────────
-function DiffBadge({ difficulty }: { difficulty: number }) {
-  const label = difficulty === 1 ? "Easy" : difficulty === 2 ? "Medium" : "Hard";
-  const color =
-    difficulty === 1
-      ? "text-green-400 border-green-700 bg-green-900/30"
-      : difficulty === 2
-      ? "text-yellow-400 border-yellow-700 bg-yellow-900/30"
-      : "text-red-400 border-red-700 bg-red-900/30";
-  return (
-    <span className={`text-xs font-mono px-2 py-0.5 rounded border ${color} uppercase tracking-wider`}>
-      {label}
-    </span>
-  );
-}
-
-// ── Stars for difficulty ──────────────────────────────────────────────────────
-function Stars({ n }: { n: number }) {
-  return (
-    <span className="text-yellow-400 text-xs">
-      {"★".repeat(n)}{"☆".repeat(3 - n)}
-    </span>
-  );
-}
-
-// ── Particle burst (canvas-based confetti) ────────────────────────────────────
+// ── Confetti canvas ───────────────────────────────────────────────────────────
 function ConfettiCanvas({ active }: { active: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
@@ -37,28 +14,21 @@ function ConfettiCanvas({ active }: { active: boolean }) {
     const ctx = canvas.getContext("2d")!;
     canvas.width = canvas.offsetWidth;
     canvas.height = canvas.offsetHeight;
-    const particles: { x: number; y: number; vx: number; vy: number; color: string; size: number; alpha: number }[] = [];
-    const colors = ["#4ade80", "#86efac", "#22c55e", "#fbbf24", "#60a5fa", "#f472b6"];
-    for (let i = 0; i < 80; i++) {
-      particles.push({
-        x: canvas.width / 2,
-        y: canvas.height / 2,
-        vx: (Math.random() - 0.5) * 14,
-        vy: (Math.random() - 0.5) * 14,
-        color: colors[Math.floor(Math.random() * colors.length)],
-        size: Math.random() * 6 + 3,
-        alpha: 1,
-      });
-    }
+    const colors = ["#4ade80", "#86efac", "#22c55e", "#fbbf24", "#60a5fa", "#f472b6", "#34d399"];
+    const particles = Array.from({ length: 100 }, () => ({
+      x: canvas.width / 2, y: canvas.height / 2,
+      vx: (Math.random() - 0.5) * 16,
+      vy: (Math.random() - 0.5) * 16,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      size: Math.random() * 7 + 3,
+      alpha: 1,
+    }));
     let frame: number;
-    function animate() {
+    const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       let alive = false;
       for (const p of particles) {
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vy += 0.3;
-        p.alpha -= 0.018;
+        p.x += p.vx; p.y += p.vy; p.vy += 0.35; p.alpha -= 0.016;
         if (p.alpha > 0) {
           alive = true;
           ctx.globalAlpha = p.alpha;
@@ -70,21 +40,29 @@ function ConfettiCanvas({ active }: { active: boolean }) {
       }
       ctx.globalAlpha = 1;
       if (alive) frame = requestAnimationFrame(animate);
-    }
+    };
     frame = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(frame);
   }, [active]);
-
   if (!active) return null;
+  return <canvas ref={canvasRef} className="pointer-events-none fixed inset-0 z-[9999] w-full h-full" />;
+}
+
+// ── Difficulty badge ──────────────────────────────────────────────────────────
+function DiffBadge({ difficulty }: { difficulty: number }) {
+  const cfg = difficulty === 1
+    ? { label: "Ușor", cls: "text-green-400 border-green-700/60 bg-green-900/20" }
+    : difficulty === 2
+    ? { label: "Mediu", cls: "text-yellow-400 border-yellow-700/60 bg-yellow-900/20" }
+    : { label: "Dificil", cls: "text-red-400 border-red-700/60 bg-red-900/20" };
   return (
-    <canvas
-      ref={canvasRef}
-      className="pointer-events-none fixed inset-0 z-[9999] w-full h-full"
-    />
+    <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${cfg.cls} uppercase tracking-widest`}>
+      {cfg.label}
+    </span>
   );
 }
 
-// ── Side Panel ────────────────────────────────────────────────────────────────
+// ── Side panel ────────────────────────────────────────────────────────────────
 interface SidePanelProps {
   zone: FogZone | null;
   riddle: FogRiddle | null;
@@ -106,102 +84,132 @@ function SidePanel({
   showHint, setShowHint, onClose,
 }: SidePanelProps) {
   if (!zone) return null;
-
   const isUnlocked = zone.status === "UNLOCKED";
   const hasActiveRiddle = zone.status === "RIDDLE_ACTIVE" || riddle !== null;
+  const pts = zone.difficulty === 1 ? 10 : zone.difficulty === 2 ? 20 : 30;
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto">
+    <div className="flex flex-col h-full overflow-y-auto scrollbar-thin">
       {/* Zone header */}
-      <div className="flex items-start justify-between mb-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-3xl">{zone.emoji}</span>
-            <div>
-              <h2 className="text-green-300 font-bold text-lg font-mono leading-tight">{zone.name}</h2>
-              <p className="text-green-700 text-xs font-mono">{zone.continent}</p>
+      <div className="relative mb-5">
+        <button
+          onClick={onClose}
+          className="absolute top-0 right-0 w-7 h-7 flex items-center justify-center rounded-full bg-gray-800/80 text-gray-500 hover:text-red-400 hover:bg-red-900/30 transition-all text-sm"
+        >
+          ✕
+        </button>
+
+        <div className="flex items-center gap-3 pr-9">
+          <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl shrink-0 border-2 ${
+            isUnlocked
+              ? "border-green-400/60 bg-green-900/20 shadow-lg shadow-green-900/40"
+              : zone.status === "RIDDLE_ACTIVE"
+              ? "border-teal-400/60 bg-teal-900/20 shadow-lg shadow-teal-900/40"
+              : "border-gray-700/60 bg-gray-800/40"
+          }`}>
+            {isUnlocked ? zone.emoji : zone.status === "RIDDLE_ACTIVE" ? "🔭" : "🌫️"}
+          </div>
+          <div>
+            <h2 className="text-white font-bold text-base leading-tight">{zone.name}</h2>
+            <p className="text-gray-500 text-xs font-mono mt-0.5">{zone.continent}</p>
+            <div className="flex items-center gap-2 mt-1.5">
+              <DiffBadge difficulty={zone.difficulty} />
+              <span className="text-yellow-500 text-xs font-mono">+{pts} pts</span>
             </div>
           </div>
-          <div className="flex items-center gap-2 mt-2">
-            <DiffBadge difficulty={zone.difficulty} />
-            <Stars n={zone.difficulty} />
-          </div>
         </div>
-        <button onClick={onClose} className="text-gray-600 hover:text-red-400 transition-colors text-xl font-mono ml-2">✕</button>
       </div>
 
-      {/* UNLOCKED state */}
+      {/* Separator */}
+      <div className="h-px bg-gradient-to-r from-transparent via-green-900/40 to-transparent mb-4" />
+
+      {/* UNLOCKED */}
       {isUnlocked && (
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-green-400 text-xl">✅</span>
-            <span className="text-green-400 font-mono text-sm font-bold">Zone Unlocked!</span>
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-2 bg-green-900/20 border border-green-700/40 rounded-xl px-3 py-2">
+            <span className="text-green-400 text-lg">✅</span>
+            <div>
+              <p className="text-green-400 font-mono text-xs font-bold uppercase tracking-wider">Zonă deblocată</p>
+              <p className="text-green-600 text-xs">+{pts} puncte câștigate</p>
+            </div>
           </div>
-          <div className="bg-gray-800/80 border border-green-800/50 rounded-lg p-4">
-            <p className="text-green-500 font-mono text-xs uppercase tracking-wider mb-2">📖 About this place</p>
+          <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-4">
+            <p className="text-teal-500 font-mono text-[10px] uppercase tracking-widest mb-2 flex items-center gap-1">
+              <span>📖</span> Despre acest loc
+            </p>
             <p className="text-gray-300 text-sm leading-relaxed">{zone.landmarkDescription}</p>
-          </div>
-          <div className="mt-4 text-center">
-            <span className="text-green-600 font-mono text-xs">
-              {zone.difficulty === 1 ? "+10" : zone.difficulty === 2 ? "+20" : "+30"} points earned
-            </span>
           </div>
         </div>
       )}
 
-      {/* LOCKED state – show get riddle button */}
+      {/* LOCKED – no riddle yet */}
       {!isUnlocked && !hasActiveRiddle && !riddleLoading && (
-        <div className="flex flex-col items-center gap-4 py-4">
-          <div className="text-center">
-            <p className="text-gray-400 text-sm font-mono mb-1">This zone is hidden in the fog.</p>
-            <p className="text-gray-500 text-xs">Solve a riddle from the AI to reveal it!</p>
+        <div className="flex flex-col items-center gap-5 py-4">
+          <div className="relative">
+            <div className="w-20 h-20 rounded-full bg-gray-800/80 border border-gray-700/50 flex items-center justify-center text-4xl">
+              🌫️
+            </div>
+            <div className="absolute inset-0 rounded-full animate-ping bg-gray-700/20" />
           </div>
-          <div className="text-5xl animate-pulse">🌫️</div>
+          <div className="text-center">
+            <p className="text-gray-300 text-sm font-mono font-semibold mb-1">Zonă ascunsă în ceață</p>
+            <p className="text-gray-600 text-xs leading-relaxed">
+              Rezolvă o ghicitoare generată de AI pentru a o debloca
+            </p>
+          </div>
           <button
             onClick={onGetRiddle}
-            className="w-full bg-teal-500/20 hover:bg-teal-500/30 border border-teal-500/50 hover:border-teal-400 text-teal-300 px-4 py-3 rounded-lg font-mono text-sm transition-all flex items-center justify-center gap-2"
+            className="w-full relative group overflow-hidden bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/40 hover:border-teal-400 text-teal-300 px-4 py-3 rounded-xl font-mono text-sm transition-all duration-300 flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-teal-900/40"
           >
-            <span>🔭</span> Generate AI Riddle
+            <span className="text-base">🔭</span>
+            Generează ghicitoare AI
           </button>
         </div>
       )}
 
       {/* Loading riddle */}
       {riddleLoading && (
-        <div className="flex flex-col items-center gap-3 py-8">
-          <div className="text-3xl animate-spin">🤖</div>
-          <p className="text-green-400 font-mono text-sm animate-pulse">AI is crafting your riddle...</p>
+        <div className="flex flex-col items-center gap-4 py-8">
+          <div className="relative">
+            <div className="w-16 h-16 rounded-full border-2 border-teal-500/40 border-t-teal-400 animate-spin" />
+            <div className="absolute inset-0 flex items-center justify-center text-2xl">🤖</div>
+          </div>
+          <div className="text-center">
+            <p className="text-teal-400 font-mono text-sm">AI creează ghicitoarea...</p>
+            <p className="text-gray-600 text-xs mt-1">Poate dura câteva secunde</p>
+          </div>
         </div>
       )}
 
       {/* Active riddle */}
       {!isUnlocked && hasActiveRiddle && riddle && !riddleLoading && (
         <div className="flex flex-col gap-4">
-          <div className="bg-gray-800/80 border border-teal-800/50 rounded-lg p-4">
-            <p className="text-teal-500 font-mono text-xs uppercase tracking-wider mb-2">🤖 AI Riddle</p>
+          {/* Question */}
+          <div className="bg-gray-800/60 border border-teal-800/40 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="w-5 h-5 rounded-full bg-teal-500/20 border border-teal-500/50 flex items-center justify-center text-[10px] text-teal-400">🤖</span>
+              <p className="text-teal-400 font-mono text-[10px] uppercase tracking-widest">Ghicitoare AI</p>
+            </div>
             <p className="text-gray-200 text-sm leading-relaxed">{riddle.question}</p>
           </div>
 
-          {/* Hint toggle */}
-          <div>
-            <button
-              onClick={() => setShowHint(!showHint)}
-              className="text-yellow-600 hover:text-yellow-400 text-xs font-mono underline transition-colors"
-            >
-              {showHint ? "▼ Hide hint" : "▶ Show hint"}
-            </button>
-            {showHint && (
-              <div className="mt-2 bg-yellow-900/20 border border-yellow-800/40 rounded p-3">
-                <p className="text-yellow-300 text-xs font-mono">💡 {riddle.hint}</p>
-              </div>
-            )}
-          </div>
+          {/* Hint */}
+          <button
+            onClick={() => setShowHint(!showHint)}
+            className="flex items-center gap-1.5 text-yellow-600 hover:text-yellow-400 text-xs font-mono transition-colors w-fit"
+          >
+            <span className="text-[10px]">{showHint ? "▼" : "▶"}</span>
+            {showHint ? "Ascunde indiciu" : "Arată indiciu"}
+          </button>
+          {showHint && (
+            <div className="bg-yellow-900/15 border border-yellow-800/30 rounded-xl px-4 py-3">
+              <p className="text-yellow-300/80 text-xs font-mono leading-relaxed">💡 {riddle.hint}</p>
+            </div>
+          )}
 
-          {/* Opțiuni grilă */}
+          {/* Options */}
           <div className="flex flex-col gap-2">
-            <label className="text-gray-500 font-mono text-xs uppercase tracking-wider mb-1 block">
-              Alege răspunsul corect
-            </label>
+            <p className="text-gray-600 font-mono text-[10px] uppercase tracking-widest">Alege răspunsul</p>
             {riddle.options.map((option, idx) => {
               const letters = ["A", "B", "C", "D"];
               const isSelected = selectedOption === idx;
@@ -209,45 +217,49 @@ function SidePanel({
               return (
                 <button
                   key={idx}
-                  onClick={() => { setSelectedOption(idx); }}
+                  onClick={() => setSelectedOption(idx)}
                   disabled={submitLoading}
-                  className={`w-full text-left px-4 py-3 rounded-lg border font-mono text-sm transition-all duration-200 flex items-center gap-3
-                    ${isWrong
-                      ? "bg-red-900/30 border-red-500 text-red-300"
+                  className={`w-full text-left px-4 py-3 rounded-xl border font-mono text-sm transition-all duration-200 flex items-center gap-3 ${
+                    isWrong
+                      ? "bg-red-900/25 border-red-500/70 text-red-300"
                       : isSelected
-                      ? "bg-green-500/20 border-green-400 text-green-200 shadow-lg shadow-green-900/30"
-                      : "bg-gray-800/60 border-gray-700 text-gray-300 hover:bg-gray-700/60 hover:border-green-700 hover:text-green-300"
-                    }`}
+                      ? "bg-green-900/25 border-green-400/70 text-green-200 shadow-md shadow-green-900/20"
+                      : "bg-gray-800/50 border-gray-700/50 text-gray-300 hover:bg-gray-700/50 hover:border-teal-700/60 hover:text-teal-200"
+                  }`}
                 >
-                  <span className={`shrink-0 w-6 h-6 rounded-full border flex items-center justify-center text-xs font-bold
-                    ${isWrong ? "border-red-400 text-red-400" : isSelected ? "border-green-400 text-green-400 bg-green-900/40" : "border-gray-600 text-gray-500"}`}>
+                  <span className={`shrink-0 w-6 h-6 rounded-full border flex items-center justify-center text-xs font-bold transition-all ${
+                    isWrong
+                      ? "border-red-400 text-red-400 bg-red-900/30"
+                      : isSelected
+                      ? "border-green-400 text-green-400 bg-green-900/40"
+                      : "border-gray-600 text-gray-500"
+                  }`}>
                     {letters[idx]}
                   </span>
-                  <span>{option.replace(/^[A-D]:\s*/, "")}</span>
+                  <span className="text-xs leading-relaxed">{option.replace(/^[A-D]:\s*/, "")}</span>
                 </button>
               );
             })}
           </div>
 
-          {/* Submit button */}
+          {/* Submit */}
           <button
             onClick={onSubmit}
             disabled={selectedOption === null || submitLoading}
-            className="w-full bg-green-500/20 hover:bg-green-500/30 border border-green-500/50 hover:border-green-400 disabled:opacity-40 disabled:cursor-not-allowed text-green-300 px-4 py-2.5 rounded-lg font-mono text-sm transition-all flex items-center justify-center gap-2"
+            className="w-full bg-green-500/15 hover:bg-green-500/25 border border-green-500/50 hover:border-green-400 disabled:opacity-30 disabled:cursor-not-allowed text-green-300 px-4 py-3 rounded-xl font-mono text-sm transition-all duration-300 flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-green-900/30"
           >
-            {submitLoading ? (
-              <><span className="animate-spin inline-block">⚙️</span> Se verifică...</>
-            ) : (
-              <><span>🔓</span> Confirmă răspunsul</>
-            )}
+            {submitLoading
+              ? <><div className="w-4 h-4 rounded-full border-2 border-green-400/40 border-t-green-400 animate-spin" /> Se verifică...</>
+              : <><span>🔓</span> Confirmă răspunsul</>
+            }
           </button>
 
-          {/* Result feedback */}
+          {/* Wrong answer feedback */}
           {unlockResult && !unlockResult.success && (
-            <div className="bg-red-900/20 border border-red-800/40 rounded-lg p-3 text-center">
+            <div className="bg-red-900/20 border border-red-800/40 rounded-xl p-3 text-center">
               <p className="text-red-400 font-mono text-sm">❌ {unlockResult.message}</p>
               {unlockResult.hint && (
-                <p className="text-yellow-500 text-xs font-mono mt-1">💡 {unlockResult.hint}</p>
+                <p className="text-yellow-500/80 text-xs font-mono mt-1.5">💡 {unlockResult.hint}</p>
               )}
             </div>
           )}
@@ -257,27 +269,109 @@ function SidePanel({
   );
 }
 
-// ── Progress Bar ──────────────────────────────────────────────────────────────
+// ── Progress bar ──────────────────────────────────────────────────────────────
 function ProgressBar({ progress }: { progress: FogProgress | null }) {
   if (!progress) return null;
-  const pct = progress.totalZones > 0 ? Math.round((progress.unlockedZones / progress.totalZones) * 100) : 0;
+  const pct = progress.totalZones > 0
+    ? Math.round((progress.unlockedZones / progress.totalZones) * 100)
+    : 0;
   return (
-    <div className="flex items-center gap-3 px-4 py-2 bg-gray-900/80 border-b border-green-900/40">
-      <span className="text-green-500 font-mono text-xs shrink-0">
-        🗺️ {progress.unlockedZones}/{progress.totalZones} zones
+    <div className="flex items-center gap-3 px-4 py-2 bg-gray-900/90 border-b border-green-900/30">
+      <span className="text-gray-500 font-mono text-xs shrink-0">
+        {progress.unlockedZones}/{progress.totalZones}
       </span>
-      <div className="flex-1 h-2 bg-gray-800 rounded-full overflow-hidden">
+      <div className="flex-1 h-1.5 bg-gray-800 rounded-full overflow-hidden">
         <div
-          className="h-full bg-gradient-to-r from-green-600 to-emerald-400 rounded-full transition-all duration-700"
+          className="h-full bg-gradient-to-r from-green-600 via-emerald-500 to-teal-400 rounded-full transition-all duration-1000"
           style={{ width: `${pct}%` }}
         />
       </div>
-      <span className="text-green-400 font-mono text-xs font-bold shrink-0">{pct}%</span>
-      <span className="text-yellow-400 font-mono text-xs shrink-0">⭐ {progress.score} pts</span>
+      <span className="text-green-500 font-mono text-xs font-bold shrink-0">{pct}%</span>
+      <div className="h-3 w-px bg-gray-700 hidden sm:block" />
+      <span className="text-yellow-400 font-mono text-xs shrink-0 hidden sm:block">⭐ {progress.score} pts</span>
       {progress.lastUnlockedZone && (
-        <span className="text-gray-500 font-mono text-xs hidden lg:block shrink-0">
-          Last: {progress.lastUnlockedZone}
+        <span className="text-gray-600 font-mono text-xs hidden lg:block shrink-0 truncate max-w-32">
+          ↑ {progress.lastUnlockedZone}
         </span>
+      )}
+    </div>
+  );
+}
+
+// ── Leaderboard panel ─────────────────────────────────────────────────────────
+function LeaderboardPanel({
+  entries,
+  currentUser,
+  live,
+}: {
+  entries: LeaderboardEntry[];
+  currentUser: string;
+  live: boolean;
+}) {
+  const medals = ["🥇", "🥈", "🥉"];
+
+  return (
+    <div className="flex flex-col h-full">
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-green-500 font-mono text-[10px] uppercase tracking-widest">
+          Clasament global
+        </p>
+        <span className={`flex items-center gap-1 text-[10px] font-mono ${live ? "text-green-400" : "text-gray-600"}`}>
+          <span className={`w-1.5 h-1.5 rounded-full ${live ? "bg-green-400 animate-pulse" : "bg-gray-600"}`} />
+          {live ? "LIVE" : "offline"}
+        </span>
+      </div>
+
+      {entries.length === 0 ? (
+        <div className="flex-1 flex items-center justify-center">
+          <p className="text-gray-600 font-mono text-xs text-center">
+            Nimeni nu a deblocat<br />o zonă încă.
+          </p>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-1.5 overflow-y-auto flex-1">
+          {entries.map((entry) => {
+            const isMe = entry.username === currentUser;
+            return (
+              <div
+                key={entry.username}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all ${
+                  isMe
+                    ? "bg-green-900/20 border-green-700/50 shadow-md shadow-green-900/20"
+                    : "bg-gray-900/50 border-gray-800/60"
+                }`}
+              >
+                {/* Rank */}
+                <div className="w-7 text-center shrink-0">
+                  {entry.rank <= 3 ? (
+                    <span className="text-base">{medals[entry.rank - 1]}</span>
+                  ) : (
+                    <span className="text-gray-500 font-mono text-xs font-bold">#{entry.rank}</span>
+                  )}
+                </div>
+
+                {/* User info */}
+                <div className="flex-1 min-w-0">
+                  <p className={`font-mono text-xs font-semibold truncate ${isMe ? "text-green-300" : "text-gray-300"}`}>
+                    {entry.username}
+                    {isMe && <span className="text-green-600 ml-1 text-[10px]">· tu</span>}
+                  </p>
+                  {entry.lastUnlockedZone && (
+                    <p className="text-gray-600 text-[10px] font-mono truncate">↑ {entry.lastUnlockedZone}</p>
+                  )}
+                </div>
+
+                {/* Score */}
+                <div className="text-right shrink-0">
+                  <p className={`font-mono text-sm font-bold ${isMe ? "text-green-400" : "text-yellow-400"}`}>
+                    {entry.score}
+                  </p>
+                  <p className="text-gray-600 text-[10px] font-mono">{entry.unlockedZones} zone</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       )}
     </div>
   );
@@ -286,33 +380,97 @@ function ProgressBar({ progress }: { progress: FogProgress | null }) {
 // ── Legend ────────────────────────────────────────────────────────────────────
 function Legend() {
   return (
-    <div className="absolute bottom-4 left-4 z-[1000] bg-gray-900/90 border border-green-900/40 rounded-lg px-3 py-2 font-mono text-xs space-y-1.5 pointer-events-none">
-      <div className="flex items-center gap-2">
-        <span className="inline-block w-3 h-3 rounded bg-gray-800 border border-gray-600 opacity-80" />
-        <span className="text-gray-400">Locked (fog)</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <span className="inline-block w-3 h-3 rounded bg-teal-600/80 border border-teal-400" />
-        <span className="text-teal-300">Riddle active</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <span className="inline-block w-3 h-3 rounded bg-green-500/80 border border-green-300" />
-        <span className="text-green-300">Unlocked</span>
-      </div>
+    <div className="absolute bottom-6 left-4 z-[1000] bg-gray-950/90 backdrop-blur border border-green-900/30 rounded-xl px-3 py-3 font-mono text-xs space-y-2 pointer-events-none shadow-xl">
+      <p className="text-gray-600 text-[10px] uppercase tracking-widest mb-1">Legendă</p>
+      {[
+        { color: "bg-gray-700/80 border-gray-500/60", label: "Blocat", ring: "" },
+        { color: "bg-teal-600/60 border-teal-400/80", label: "Ghicitoare activă", ring: "shadow-teal-500/50" },
+        { color: "bg-green-500/60 border-green-300/80", label: "Deblocat", ring: "shadow-green-500/50" },
+      ].map(({ color, label, ring }) => (
+        <div key={label} className="flex items-center gap-2.5">
+          <span className={`inline-block w-3 h-3 rounded-full border ${color} shadow-md ${ring}`} />
+          <span className="text-gray-400">{label}</span>
+        </div>
+      ))}
     </div>
   );
 }
 
-// ── Main component ────────────────────────────────────────────────────────────
-interface FogOfWarProps {
-  onClose: () => void;
-}
+// ── CSS pentru markerii de pe hartă ──────────────────────────────────────────
+const MAP_STYLES = `
+  .fog-marker-locked {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: rgba(17,24,39,0.85);
+    border: 1.5px solid rgba(75,85,99,0.5);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.7);
+    font-size: 15px;
+    color: rgba(156,163,175,0.5);
+  }
+  .fog-marker-locked:hover {
+    border-color: rgba(107,114,128,0.8);
+    background: rgba(31,41,55,0.9);
+    transform: scale(1.15);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+  }
+  .fog-marker-active {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: rgba(13,148,136,0.25);
+    border: 2px solid rgba(45,212,191,0.8);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 20px;
+    box-shadow: 0 0 18px rgba(45,212,191,0.5), 0 0 6px rgba(45,212,191,0.3);
+    animation: fogActivePulse 2s ease-in-out infinite;
+  }
+  .fog-marker-active:hover { transform: scale(1.15); }
+  .fog-marker-unlocked {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: rgba(34,197,94,0.2);
+    border: 2px solid rgba(74,222,128,0.8);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 22px;
+    box-shadow: 0 0 22px rgba(74,222,128,0.45), 0 0 8px rgba(74,222,128,0.25);
+    animation: fogUnlockedGlow 3s ease-in-out infinite;
+  }
+  .fog-marker-unlocked:hover { transform: scale(1.12); }
+  @keyframes fogActivePulse {
+    0%, 100% { box-shadow: 0 0 18px rgba(45,212,191,0.5), 0 0 6px rgba(45,212,191,0.3); }
+    50% { box-shadow: 0 0 30px rgba(45,212,191,0.7), 0 0 12px rgba(45,212,191,0.5); }
+  }
+  @keyframes fogUnlockedGlow {
+    0%, 100% { box-shadow: 0 0 22px rgba(74,222,128,0.4), 0 0 8px rgba(74,222,128,0.2); }
+    50% { box-shadow: 0 0 35px rgba(74,222,128,0.6), 0 0 15px rgba(74,222,128,0.4); }
+  }
+  @keyframes panelSlideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  .leaflet-tooltip.fog-tooltip {
+    background: rgba(3,7,18,0.92);
+    border: 1px solid rgba(34,197,94,0.3);
+    border-radius: 8px;
+    color: #86efac;
+    font-family: monospace;
+    font-size: 11px;
+    padding: 4px 10px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+    white-space: nowrap;
+  }
+  .leaflet-tooltip.fog-tooltip::before { border-top-color: rgba(34,197,94,0.3); }
+`;
 
-export default function FogOfWar({ onClose }: FogOfWarProps) {
+// ── Main component ────────────────────────────────────────────────────────────
+export default function FogOfWar({ onClose }: { onClose: () => void }) {
   const { user } = useAuth();
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
-  const rectanglesRef = useRef<Map<number, any>>(new Map());
   const markersRef = useRef<Map<number, any>>(new Map());
 
   const [zones, setZones] = useState<FogZone[]>([]);
@@ -327,160 +485,144 @@ export default function FogOfWar({ onClose }: FogOfWarProps) {
   const [confetti, setConfetti] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [leaderboardLive, setLeaderboardLive] = useState(false);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const stompRef = useRef<Client | null>(null);
 
-  // Load zones + progress
+  // WebSocket leaderboard
+  useEffect(() => {
+    fogApi.getLeaderboard().then(setLeaderboard).catch(() => {});
+
+    const wsUrl = typeof window !== "undefined"
+      ? `${window.location.protocol}//${window.location.host}/games/ws-leaderboard`
+      : "http://games-service:8084/games/ws-leaderboard";
+
+    const client = new Client({
+      webSocketFactory: () => new SockJS(wsUrl),
+      reconnectDelay: 5000,
+      onConnect: () => {
+        setLeaderboardLive(true);
+        client.subscribe("/topic/leaderboard", (msg) => {
+          try {
+            setLeaderboard(JSON.parse(msg.body));
+          } catch {}
+        });
+      },
+      onDisconnect: () => setLeaderboardLive(false),
+      onStompError: () => setLeaderboardLive(false),
+    });
+
+    client.activate();
+    stompRef.current = client;
+
+    return () => {
+      client.deactivate();
+      stompRef.current = null;
+    };
+  }, []);
+
   const refreshData = useCallback(async () => {
     try {
       const [z, p] = await Promise.all([fogApi.getZones(), fogApi.getProgress()]);
       setZones(z);
       setProgress(p);
       return z;
-    } catch (e: any) {
-      setError("Failed to load game data. Is the Games service running?");
+    } catch {
+      setError("Nu s-a putut conecta la serverul de joc. Încearcă din nou.");
       return null;
     }
   }, []);
 
-  // Initialize Leaflet map
-  useEffect(() => {
-    if (typeof window === "undefined" || !mapContainerRef.current || mapRef.current) return;
-
-    (async () => {
-      setLoading(true);
-      const L = (await import("leaflet")).default;
-
-      const map = L.map(mapContainerRef.current!, {
-        center: [20, 0],
-        zoom: 2,
-        minZoom: 1,
-        maxZoom: 8,
-        zoomControl: false,
-      });
-
-      L.tileLayer(
-        "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-        { attribution: "© OpenStreetMap © CARTO", maxZoom: 19 }
-      ).addTo(map);
-
-      L.control.zoom({ position: "topright" }).addTo(map);
-      mapRef.current = map;
-
-      const zonesData = await refreshData();
-      setLoading(false);
-
-      if (zonesData) {
-        renderZones(L, map, zonesData);
-      }
-    })();
-
-    return () => {
-      if (mapRef.current) {
-        mapRef.current.remove();
-        mapRef.current = null;
-      }
-    };
-  }, []);
-
-  // Render/update zone rectangles
-  const renderZones = useCallback((L: any, map: any, zonesData: FogZone[]) => {
-    // Clear existing layers
-    rectanglesRef.current.forEach((rect) => map.removeLayer(rect));
+  // Render markers pe hartă
+  const renderMarkers = useCallback((L: any, map: any, zonesData: FogZone[]) => {
     markersRef.current.forEach((m) => map.removeLayer(m));
-    rectanglesRef.current.clear();
     markersRef.current.clear();
 
     for (const zone of zonesData) {
-      const bounds: [[number, number], [number, number]] = [
-        [zone.bboxSouth, zone.bboxWest],
-        [zone.bboxNorth, zone.bboxEast],
-      ];
+      const centerLat = (zone.bboxSouth + zone.bboxNorth) / 2;
+      const centerLng = (zone.bboxWest + zone.bboxEast) / 2;
 
-      let fillColor: string;
-      let fillOpacity: number;
-      let strokeColor: string;
-      let strokeOpacity: number;
+      let markerClass: string;
+      let innerHtml: string;
+      let size: number;
 
       if (zone.status === "UNLOCKED") {
-        fillColor = "#22c55e";
-        fillOpacity = 0.18;
-        strokeColor = "#4ade80";
-        strokeOpacity = 0.9;
+        markerClass = "fog-marker-unlocked";
+        innerHtml = zone.emoji;
+        size = 48;
       } else if (zone.status === "RIDDLE_ACTIVE") {
-        fillColor = "#0d9488";
-        fillOpacity = 0.35;
-        strokeColor = "#2dd4bf";
-        strokeOpacity = 0.9;
+        markerClass = "fog-marker-active";
+        innerHtml = "🔭";
+        size = 44;
       } else {
-        fillColor = "#111827";
-        fillOpacity = 0.72;
-        strokeColor = "#374151";
-        strokeOpacity = 0.5;
+        markerClass = "fog-marker-locked";
+        innerHtml = "?";
+        size = 36;
       }
 
-      const rect = L.rectangle(bounds, {
-        fillColor,
-        fillOpacity,
-        color: strokeColor,
-        opacity: strokeOpacity,
-        weight: zone.status === "LOCKED" ? 1 : 2,
-        className: zone.status === "UNLOCKED" ? "fog-zone-unlocked" : "",
-      }).addTo(map);
+      const icon = L.divIcon({
+        className: "",
+        html: `<div class="${markerClass}">${innerHtml}</div>`,
+        iconSize: [size, size],
+        iconAnchor: [size / 2, size / 2],
+        tooltipAnchor: [0, -size / 2 - 4],
+      });
 
-      rect.on("click", () => {
+      const marker = L.marker([centerLat, centerLng], { icon }).addTo(map);
+
+      // Tooltip cu numele zonei
+      marker.bindTooltip(
+        `<span>${zone.status === "LOCKED" ? "❓ " : ""}${zone.name}</span>`,
+        { direction: "top", className: "fog-tooltip", offset: [0, -4] }
+      );
+
+      marker.on("click", () => {
         setSelectedZone(zone);
         setRiddle(null);
         setSelectedOption(null);
         setUnlockResult(null);
         setShowHint(false);
-        // If riddle was already active, auto-load it
         if (zone.status === "RIDDLE_ACTIVE") {
           loadRiddleForZone(zone.id);
         }
       });
 
-      rect.on("mouseover", () => {
-        if (zone.status !== "UNLOCKED") {
-          rect.setStyle({ fillOpacity: zone.status === "LOCKED" ? 0.55 : 0.45, weight: 2 });
-        }
-      });
-      rect.on("mouseout", () => {
-        rect.setStyle({ fillOpacity, weight: zone.status === "LOCKED" ? 1 : 2 });
-      });
-
-      rectanglesRef.current.set(zone.id, rect);
-
-      // Add emoji marker for visible zones
-      if (zone.status !== "LOCKED" || true) {
-        const centerLat = (zone.bboxSouth + zone.bboxNorth) / 2;
-        const centerLng = (zone.bboxWest + zone.bboxEast) / 2;
-
-        const icon = L.divIcon({
-          className: "",
-          html: `<div style="
-            font-size:${zone.status === "LOCKED" ? "12px" : "18px"};
-            opacity:${zone.status === "LOCKED" ? "0.3" : "1"};
-            filter:${zone.status === "LOCKED" ? "grayscale(1)" : "none"};
-            pointer-events:none;
-            text-align:center;
-            line-height:1;
-          ">${zone.emoji}</div>`,
-          iconSize: [24, 24],
-          iconAnchor: [12, 12],
-        });
-
-        const marker = L.marker([centerLat, centerLng], { icon, interactive: false }).addTo(map);
-        markersRef.current.set(zone.id, marker);
-      }
+      markersRef.current.set(zone.id, marker);
     }
   }, []);
 
-  // Re-render map when zones change
+  // Init hartă
+  useEffect(() => {
+    if (typeof window === "undefined" || !mapContainerRef.current || mapRef.current) return;
+    (async () => {
+      setLoading(true);
+      const L = (await import("leaflet")).default;
+      const map = L.map(mapContainerRef.current!, {
+        center: [20, 10],
+        zoom: 2,
+        minZoom: 1,
+        maxZoom: 7,
+        zoomControl: false,
+      });
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+        attribution: "© OpenStreetMap © CARTO",
+        maxZoom: 19,
+      }).addTo(map);
+      L.control.zoom({ position: "topright" }).addTo(map);
+      mapRef.current = map;
+      const zonesData = await refreshData();
+      setLoading(false);
+      if (zonesData) renderMarkers(L, map, zonesData);
+    })();
+    return () => { if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; } };
+  }, []);
+
+  // Re-render la schimbarea zonelor
   useEffect(() => {
     if (!mapRef.current || zones.length === 0) return;
-    import("leaflet").then(({ default: L }) => {
-      renderZones(L, mapRef.current, zones);
-    });
-  }, [zones]);
+    import("leaflet").then(({ default: L }) => renderMarkers(L, mapRef.current, zones));
+  }, [zones, renderMarkers]);
 
   const loadRiddleForZone = async (zoneId: number) => {
     setRiddleLoading(true);
@@ -488,7 +630,7 @@ export default function FogOfWar({ onClose }: FogOfWarProps) {
       const r = await fogApi.getRiddle(zoneId);
       setRiddle(r);
     } catch {
-      setError("Failed to generate riddle.");
+      setError("Nu s-a putut genera ghicitoarea.");
     } finally {
       setRiddleLoading(false);
     }
@@ -497,10 +639,7 @@ export default function FogOfWar({ onClose }: FogOfWarProps) {
   const handleGetRiddle = async () => {
     if (!selectedZone) return;
     await loadRiddleForZone(selectedZone.id);
-    // Update zone status locally
-    setZones((prev) =>
-      prev.map((z) => z.id === selectedZone.id ? { ...z, status: "RIDDLE_ACTIVE" } : z)
-    );
+    setZones((prev) => prev.map((z) => z.id === selectedZone.id ? { ...z, status: "RIDDLE_ACTIVE" } : z));
     setSelectedZone((prev) => prev ? { ...prev, status: "RIDDLE_ACTIVE" } : prev);
   };
 
@@ -514,7 +653,6 @@ export default function FogOfWar({ onClose }: FogOfWarProps) {
       if (result.success) {
         setConfetti(true);
         setTimeout(() => setConfetti(false), 3000);
-        // Refresh data
         const updated = await refreshData();
         if (updated) {
           const updatedZone = updated.find((z) => z.id === selectedZone.id);
@@ -530,29 +668,18 @@ export default function FogOfWar({ onClose }: FogOfWarProps) {
     }
   };
 
-  const handlePanelClose = () => {
-    setSelectedZone(null);
-    setRiddle(null);
-    setSelectedOption(null);
-    setUnlockResult(null);
-    setShowHint(false);
-  };
-
+  // Guest screen
   if (user?.role === "GUEST") {
     return (
-      <div
-        className="fixed inset-0 z-50 flex items-center justify-center p-4"
-        style={{ background: "rgba(0,0,0,0.85)" }}
-        onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-      >
-        <div className="relative w-full max-w-md bg-gray-950 rounded-2xl border border-green-900/50 shadow-2xl flex flex-col items-center p-8 text-center gap-4">
-          <button onClick={onClose} className="absolute top-3 right-4 text-gray-500 hover:text-red-400 text-xl font-mono">✕</button>
-          <div className="w-16 h-16 rounded-full bg-green-900/20 border border-green-700/50 flex items-center justify-center text-3xl">🔒</div>
-          <h3 className="text-green-300 font-mono text-lg font-bold">Acces Restrictionat</h3>
-          <p className="text-gray-400 font-mono text-sm max-w-sm">
-            Jocul Fog of War este disponibil doar membrilor. Creează-ți un cont pentru a explora harta și debloca zone!
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85">
+        <div className="relative w-full max-w-md bg-gray-950 rounded-2xl border border-green-900/40 shadow-2xl shadow-green-900/20 flex flex-col items-center p-8 text-center gap-4">
+          <button onClick={onClose} className="absolute top-4 right-4 text-gray-600 hover:text-red-400 transition-colors font-mono">✕</button>
+          <div className="w-16 h-16 rounded-full bg-gray-900 border border-gray-700 flex items-center justify-center text-3xl">🔒</div>
+          <h3 className="text-green-300 font-mono text-lg font-bold">Acces Restricționat</h3>
+          <p className="text-gray-400 font-mono text-sm">
+            Fog of War este disponibil doar membrilor înregistrați. Creează-ți un cont pentru a explora harta!
           </p>
-          <a href="/auth" className="mt-2 px-6 py-2 bg-transparent border border-green-500 text-green-300 rounded font-mono text-sm tracking-wider uppercase hover:bg-green-900/30 transition-colors">
+          <a href="/auth" className="mt-2 px-6 py-2 border border-green-500/60 text-green-300 rounded-lg font-mono text-sm uppercase tracking-wider hover:bg-green-900/20 transition-colors">
             Creează cont
           </a>
         </div>
@@ -562,40 +689,56 @@ export default function FogOfWar({ onClose }: FogOfWarProps) {
 
   return (
     <div className="fixed inset-0 z-50 bg-gray-950 flex flex-col font-mono">
+      <style>{MAP_STYLES}</style>
       <ConfettiCanvas active={confetti} />
 
-      {/* ── Header ── */}
-      <div className="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3 bg-gray-950 border-b border-green-900/40 z-10">
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-          <span className="w-2 h-2 rounded-full bg-green-500 inline-block shrink-0" />
-          <div className="min-w-0">
-            <h1 className="text-green-400 font-bold tracking-widest text-xs sm:text-sm uppercase truncate">
-              Fog of War
-            </h1>
-            <p className="text-green-800 text-xs hidden sm:block">Click a zone to reveal its secrets via AI riddles</p>
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3 bg-gray-950/95 border-b border-green-900/30 z-10 backdrop-blur">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="relative w-2 h-2">
+            <span className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-75" />
+            <span className="relative w-2 h-2 rounded-full bg-green-400 inline-block" />
+          </div>
+          <div>
+            <h1 className="text-green-400 font-bold tracking-widest text-sm uppercase">Fog of War</h1>
+            <p className="text-gray-600 text-[10px] hidden sm:block">Deblochează zonele rezolvând ghicitori generate de AI</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {progress && (
-            <div className="hidden sm:flex items-center gap-2 text-xs">
-              <span className="text-yellow-400">{progress.score} pts</span>
-              <span className="text-green-600">|</span>
-              <span className="text-green-500">{progress.unlockedZones} unlocked</span>
+            <div className="hidden sm:flex items-center gap-2 text-xs bg-gray-900/60 border border-gray-800 rounded-lg px-3 py-1.5">
+              <span className="text-yellow-400 font-bold">{progress.score}</span>
+              <span className="text-gray-600">pts</span>
+              <span className="w-px h-3 bg-gray-700 mx-0.5" />
+              <span className="text-green-500">{progress.unlockedZones}</span>
+              <span className="text-gray-600">zone</span>
             </div>
           )}
           <button
-            onClick={onClose}
-            className="text-xs px-3 py-1.5 rounded border border-red-900/60 text-red-400 hover:bg-red-900/30 hover:border-red-600 transition-all uppercase tracking-wider"
+            onClick={() => setShowLeaderboard((v) => !v)}
+            className={`text-xs px-3 py-1.5 rounded-lg border transition-all uppercase tracking-wider flex items-center gap-1.5 ${
+              showLeaderboard
+                ? "bg-yellow-900/20 border-yellow-600/60 text-yellow-300"
+                : "border-yellow-900/50 text-yellow-500 hover:bg-yellow-900/20 hover:border-yellow-600/60 hover:text-yellow-300"
+            }`}
           >
-            ✕ Close
+            <span>🏆</span>
+            <span className="hidden sm:inline">Clasament</span>
+            {leaderboardLive && <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />}
+          </button>
+          <button
+            onClick={onClose}
+            className="text-xs px-3 py-1.5 rounded-lg border border-red-900/50 text-red-400 hover:bg-red-900/20 hover:border-red-600/60 transition-all uppercase tracking-wider"
+          >
+            ✕ Închide
           </button>
         </div>
       </div>
 
-      {/* ── Progress bar ── */}
+      {/* Progress */}
       <ProgressBar progress={progress} />
 
-      {/* ── Body: map + side panel ── */}
+      {/* Body */}
       <div className="flex flex-1 overflow-hidden relative">
         {/* Map */}
         <div ref={mapContainerRef} className="flex-1 h-full relative" />
@@ -603,38 +746,56 @@ export default function FogOfWar({ onClose }: FogOfWarProps) {
         {/* Legend */}
         {!loading && <Legend />}
 
-        {/* Loading overlay */}
+        {/* Loading */}
         {loading && (
-          <div className="absolute inset-0 z-20 flex items-center justify-center bg-gray-950/90">
-            <div className="flex flex-col items-center gap-3">
-              <div className="text-4xl animate-pulse">🌍</div>
-              <p className="text-green-400 font-mono text-sm animate-pulse">Loading world map...</p>
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-gray-950/95">
+            <div className="flex flex-col items-center gap-4">
+              <div className="relative w-16 h-16">
+                <div className="absolute inset-0 rounded-full border-2 border-green-500/20 border-t-green-400 animate-spin" />
+                <div className="absolute inset-2 rounded-full border border-teal-500/20 border-b-teal-400 animate-spin" style={{ animationDirection: "reverse", animationDuration: "1.5s" }} />
+                <div className="absolute inset-0 flex items-center justify-center text-2xl">🌍</div>
+              </div>
+              <p className="text-green-400 font-mono text-sm animate-pulse">Se încarcă harta...</p>
             </div>
           </div>
         )}
 
-        {/* Error overlay */}
+        {/* Error */}
         {error && (
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 bg-red-900/80 border border-red-600 rounded-lg px-4 py-2 text-red-300 text-xs font-mono flex items-center gap-2">
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 bg-red-900/80 backdrop-blur border border-red-600/60 rounded-xl px-4 py-2 text-red-300 text-xs font-mono flex items-center gap-2 shadow-xl">
             ⚠️ {error}
-            <button onClick={() => setError(null)} className="text-red-400 hover:text-white ml-2">✕</button>
+            <button onClick={() => setError(null)} className="text-red-500 hover:text-white ml-1 transition-colors">✕</button>
           </div>
         )}
 
-        {/* Hint overlay when nothing selected */}
+        {/* Hint when nothing selected */}
         {!selectedZone && !loading && (
-          <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
-            <div className="bg-gray-900/70 border border-green-900/30 rounded-lg px-4 py-2 text-green-700 text-xs font-mono animate-pulse">
-              👆 Click any zone on the map to begin exploring
+          <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
+            <div className="bg-gray-900/80 backdrop-blur border border-green-900/30 rounded-xl px-5 py-2.5 text-green-700 text-xs font-mono animate-pulse shadow-lg">
+              Apasă pe orice marker de pe hartă pentru a explora
             </div>
           </div>
         )}
 
-        {/* Side panel */}
+        {/* Leaderboard panel */}
+        {showLeaderboard && !selectedZone && (
+          <div
+            className="absolute inset-0 sm:static sm:inset-auto w-full sm:w-72 h-full border-0 sm:border-l border-yellow-900/30 bg-gray-950/98 backdrop-blur-sm p-5 overflow-y-auto z-30 shadow-2xl shadow-black/50"
+            style={{ animation: "panelSlideIn 0.25s ease-out" }}
+          >
+            <LeaderboardPanel
+              entries={leaderboard}
+              currentUser={user?.username ?? ""}
+              live={leaderboardLive}
+            />
+          </div>
+        )}
+
+        {/* Zone side panel */}
         {selectedZone && (
           <div
-            className="absolute inset-0 sm:static sm:inset-auto w-full sm:w-80 h-full border-0 sm:border-l border-green-900/40 bg-gray-900/95 backdrop-blur p-4 overflow-y-auto z-30"
-            style={{ animation: "slideIn 0.25s ease-out" }}
+            className="absolute inset-0 sm:static sm:inset-auto w-full sm:w-80 lg:w-96 h-full border-0 sm:border-l border-green-900/30 bg-gray-950/98 backdrop-blur-sm p-5 overflow-y-auto z-30 shadow-2xl shadow-black/50"
+            style={{ animation: "panelSlideIn 0.25s ease-out" }}
           >
             <SidePanel
               zone={selectedZone}
@@ -648,27 +809,17 @@ export default function FogOfWar({ onClose }: FogOfWarProps) {
               unlockResult={unlockResult}
               showHint={showHint}
               setShowHint={setShowHint}
-              onClose={handlePanelClose}
+              onClose={() => {
+                setSelectedZone(null);
+                setRiddle(null);
+                setSelectedOption(null);
+                setUnlockResult(null);
+                setShowHint(false);
+              }}
             />
           </div>
         )}
       </div>
-
-      {/* slide-in animation */}
-      <style>{`
-        @keyframes slideIn {
-          from { transform: translateX(100%); opacity: 0; }
-          to { transform: translateX(0); opacity: 1; }
-        }
-        .fog-zone-unlocked {
-          animation: glowPulse 2s ease-in-out infinite;
-        }
-        @keyframes glowPulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.7; }
-        }
-      `}</style>
     </div>
   );
 }
-
